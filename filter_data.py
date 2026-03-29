@@ -66,35 +66,55 @@ class User:
     following: Optional[int] = None
 
 
-def twitter_files(mbti: str, info: str, tweets: str) -> None:
+def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
     """
-    Creates a User class Object based on the twitter dataset.
-    """
-    user = User()
+    Returns a list of User objects populated by parsing three Twitter-sourced CSV files of the following format:
+        - mbti: A file containing user IDs and MBTI personality type classifications.
+        - info: A file containing user IDs and profile metrics like bio length, engagement stats, and follower counts.
+        - tweets: A file containing user IDs and raw tweet content used for calculating sentiment scores.
 
-    user.source_platform = 'twitter'
+    Preconditions:
+        - All input files must be in CSV format.
+        - The User ID must be located in the first column (index 0) of every input file.
+        - The MBTI file serves as the master record, containing a comprehensive list of all User IDs.
+            No new User IDs may appear in subsequent files that are not already present in the MBTI file.
+    """
+    user_registry = {}
 
     with open(mbti) as mbti_file:
         reader = csv.reader(mbti_file)
         for row in reader:
-            user.user_id = int(row[0])
-            user.mbti = row[1]
+            uid = int(row[0])
+            new_user = User()
+            new_user.user_id = uid
+            new_user.mbti = row[1]
+            new_user.source_platform = 'twitter'
+
+            user_registry[uid] = new_user
 
     with open(info) as info_file:
         reader = csv.reader(info_file)
         for row in reader:
-            user.average_post_length = float(row[21])
-            user.length_of_bio = len(row[5])
-            user.average_retweet_count = float(row[22])
-            user.hashtags_count = int(row[24])
-            user.followers = int(row[7])
-            user.following = int(row[8])
+            uid = int(row[0])
+            if uid in user_registry:
+                u = user_registry[uid]
+                u.average_post_length = float(row[21])
+                u.length_of_bio = len(row[5])
+                u.average_retweet_count = float(row[22])
+                u.hashtags_count = int(row[24])
+                u.followers = int(row[7])
+                u.following = int(row[8])
 
     with open(tweets) as tweets_file:
         reader = csv.reader(tweets_file)
         for row in reader:
-            tweets_list = [row[i] for i in range(1, len(row) + 1)]
-            main.get_excitement_score(tweets_list)
+            uid = int(row[0])
+            if uid in user_registry:
+                tweets_list = row[1:]
+                user_registry[uid].post_sentiment = main.get_excitment_score(tweets_list)
+
+    return list(user_registry.values())
+
 
 
 def reddit_user_files(mbti_file: str, reddit_post_file: str) -> list[User]:
