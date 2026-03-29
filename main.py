@@ -16,6 +16,6 @@ This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 """
 
 
-def get_excitement_score(s: str) -> float:
+def get_excitement_score(posts: list[str]) -> float:
     """..."""
     raise NotImplementedError
