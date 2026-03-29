@@ -18,6 +18,7 @@ This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 
 import csv
 from typing import Optional
+import main
 
 
 class User:
@@ -29,7 +30,7 @@ class User:
 
         # GENERAL ATTRIBUTES
         - user_id: A unique identifier sourced from Twitter data or generated internally for new users.
-        - mbti: The Myers-Briggs Type Indicator used to classify the user's personality.
+        - mbti: The Myers-Briggs Type Indicator used to classify the user's personality; case-sensitive (lower-case).
         - average_post_length: The mean length of the user's published content.
         - excitement_score: The calculated tone of the user's posts.
         - source_platform: The specific social media service where the data originated.
@@ -42,8 +43,8 @@ class User:
         - following: The total count of accounts that this user follows.
 
     Representation Invariants:
-        - mbti in {'ENTJ', 'ENFJ', 'ESFJ', 'ESTJ', 'ENTP', 'ENFP', 'ESFP', 'ESTP',
-            'INTJ', 'INFJ', 'ISFJ', 'ISTJ', 'INTP', 'INFP', 'ISFP', 'ISTP'}
+        - mbti in {'entj', 'enfj', 'esfj', 'estj', 'entp', 'enfp', 'esfp', 'estp',
+            'intj', 'infj', 'isfj', 'istj', 'intp', 'infp', 'isfp', 'istp'}
         - 0.0 <= excitement_score <= 1.0
         - source_platform in {'twitter', 'reddit', 'miscellaneous'}
 
@@ -64,10 +65,32 @@ class User:
     following: Optional[int] = None
 
 
-# def twitter_files(user: str) -> None:
-#     # user info
-#     with open(user, newline='') as user_info:
-#         reader = csv.reader(user_info)
-#         for row in reader:
-#           followers = row[7]
-#         TODO: complete this function
+def twitter_files(mbti: str, info: str, tweets: str) -> None:
+    """
+    Creates a User class Object based on the twitter dataset.
+    """
+    user = User()
+
+    user.source_platform = 'twitter'
+
+    with open(mbti) as mbti_file:
+        reader = csv.reader(mbti_file)
+        for row in reader:
+            user.user_id = int(row[0])
+            user.mbti = row[1]
+
+    with open(info) as info_file:
+        reader = csv.reader(info_file)
+        for row in reader:
+            user.average_post_length = float(row[21])
+            user.length_of_bio = len(row[5])
+            user.average_retweet_count = float(row[22])
+            user.hashtags_count = int(row[24])
+            user.followers = int(row[7])
+            user.following = int(row[8])
+
+    with open(tweets) as tweets_file:
+        reader = csv.reader(tweets_file)
+        for row in reader:
+            tweets_list = [row[i] for i in range(1, len(row) + 1)]
+            main.get_excitement_score(tweets_list)
