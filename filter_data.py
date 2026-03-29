@@ -96,30 +96,48 @@ def twitter_files(mbti: str, info: str, tweets: str) -> None:
             tweets_list = [row[i] for i in range(1, len(row) + 1)]
             main.get_excitement_score(tweets_list)
 
-def reddit_user_files(mbti_file: str, reddit_post_file: str) -> None:
-    """..."""
+
+def reddit_user_files(mbti_file: str, reddit_post_file: str) -> list[User]:
+    """Returns a list of Users based on the reddit dataset.
+
+    Preconditions:
+        - mbti_file is the path to a CSV file corresponding to a file with two columns,
+            where the left column is mbti type, and right column is the corresponding reddit text post.
+        - reddit_post_file is the path to a CSV file corresponding to the reddit posts (small),
+            where the leftmost column is the username, middle column is the text post,
+            and the rightmost column is the mbti type.
+    """
     i = 0
-    users = {}
+    users_and_post = {}
+    user_list = []
 
     with open(mbti_file) as f:
         reader = csv.reader(f)
+        user = User()
         for row in reader:
-            user_id = i
+            user.user_id = i
             i += 1
-            mbti = row[0]
-            average_post_length = len(row[1])
-            excitement_score = main.get_excitement_score(row[1])
-            source_platform = 'reddit'
+            user.mbti = row[0]
+            user.average_post_length = len(row[1])
+            user.excitement_score = main.get_excitement_score(row[1])
+            user.source_platform = 'reddit'
+
+            user_list.append(user)
 
     with open(reddit_post_file) as f:
         reader = csv.reader(f)
+        user = User()
         for row in reader:
-            if row[0] not in users:
-                user_id = i
+            if row[0] not in users_and_post:
+                user.user_id = i
                 i += 1
-                users[user_id][0] += len(row[1])
-                users[user_id][1] += 1
-            mbti = row[2]
-            average_post_length = users[user_id][0] / users[user_id][1]
-            excitement_score = main.get_excitement_score(users[user_id][0])
-            source_platform = 'reddit'
+                users_and_post[user.user_id][0] += len(row[1])
+                users_and_post[user.user_id][1] += 1
+            user.mbti = row[2]
+            user.average_post_length = users_and_post[user.user_id][0] / users_and_post[user.user_id][1]
+            user.excitement_score = main.get_excitement_score(users_and_post[user.user_id][0])
+            user.source_platform = 'reddit'
+
+            user_list.append(user)
+
+    return user_list
