@@ -23,15 +23,16 @@ class User:
     TODO: add docstring
     """
     user_id: int
-    mbti_type: str
+    mbti: str
     followers: int
     following: int
-    length_of_bio: int
 
-    # TODO: should we use averages or the count -- what is the difference
-    retweets: int
+    post_sentiment: float
+
+    length_of_bio: int
+    average_retweet_count: float
     hashtags_count: int
-    average_tweet_length: int
+    average_tweet_length: float
 
 
 # def twitter_files(user: str) -> None:
