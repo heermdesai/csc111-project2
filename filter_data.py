@@ -17,21 +17,51 @@ This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 """
 
 import csv
+from typing import Optional
+
 
 class User:
     """
-    TODO: add docstring
-    """
-    user_id: int
-    mbti_type: str
-    followers: int
-    following: int
-    length_of_bio: int
+    Represents a social media user and their behavioral metrics across platforms (specifically,
+    Twitter, Reddit, and miscellaneous text-post platforms)
 
-    # TODO: should we use averages or the count -- what is the difference
-    retweets: int
-    hashtags_count: int
-    average_tweet_length: int
+    Instance Attributes:
+
+        # GENERAL ATTRIBUTES
+        - user_id: A unique identifier sourced from Twitter data or generated internally for new users.
+        - mbti: The Myers-Briggs Type Indicator used to classify the user's personality.
+        - average_post_length: The mean length of the user's published content.
+        - excitement_score: The calculated tone of the user's posts.
+        - source_platform: The specific social media service where the data originated.
+
+        # TWITTER-SPECIFIC (OPTIONAL) ATTRIBUTES
+        - length_of_bio: The total number of characters in the user's profile biography.
+        - average_retweet_count: The mean number of times the user's content is shared by others.
+        - hashtags_count: The total frequency of hashtag usage within the user's posts.
+        - followers: The total count of other accounts following this user.
+        - following: The total count of accounts that this user follows.
+
+    Representation Invariants:
+        - mbti in {'ENTJ', 'ENFJ', 'ESFJ', 'ESTJ', 'ENTP', 'ENFP', 'ESFP', 'ESTP',
+            'INTJ', 'INFJ', 'ISFJ', 'ISTJ', 'INTP', 'INFP', 'ISFP', 'ISTP'}
+        - 0.0 <= excitement_score <= 1.0
+        - source_platform in {'twitter', 'reddit', 'miscellaneous'}
+
+    """
+
+    # General Attributes
+    user_id: int  # Twitter data gives userid, otherwise we create a unique user
+    mbti: str
+    average_post_length: float
+    excitement_score: float
+    source_platform: str
+
+    # Twitter-Specific Attributes
+    length_of_bio: Optional[int] = None
+    average_retweet_count: Optional[float] = None
+    hashtags_count: Optional[int] = None
+    followers: Optional[int] = None
+    following: Optional[int] = None
 
 
 # def twitter_files(user: str) -> None:
