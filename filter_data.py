@@ -111,7 +111,7 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
             uid = int(row[0])
             if uid in user_registry:
                 tweets_list = row[1:]
-                user_registry[uid].post_sentiment = main.get_excitment_score(tweets_list)
+                user_registry[uid].post_sentiment = main.get_excitement_score(tweets_list)
 
     return list(user_registry.values())
 
@@ -138,7 +138,7 @@ def reddit_user_files(mbti_file: str, reddit_post_file: str) -> list[User]:
             i += 1
             user.mbti = row[0]
             user.average_post_length = len(row[1])
-            user.excitement_score = main.get_excitement_score(row[1])
+            user.excitement_score = main.get_excitement_score(list(row[1]))
             user.source_platform = 'reddit'
 
             user_list.append(user)
