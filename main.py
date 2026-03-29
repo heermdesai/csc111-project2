@@ -14,3 +14,8 @@ grading. All forms of distribution of this code are expressly prohibited.
 
 This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 """
+
+
+def get_excitment_score(s: str) -> float:
+    """..."""
+    raise NotImplementedError
