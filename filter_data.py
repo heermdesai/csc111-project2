@@ -19,6 +19,8 @@ This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 import csv
 from typing import Optional
 
+from assignments.project2 import main
+
 
 class User:
     """
@@ -71,3 +73,31 @@ class User:
 #         for row in reader:
 #           followers = row[7]
 #         TODO: complete this function
+
+def reddit_user_files(mbti_file: str, reddit_post_file: str) -> None:
+    """..."""
+    i = 0
+    users = {}
+
+    with open(mbti_file) as f:
+        reader = csv.reader(f)
+        for row in reader:
+            user_id = i
+            i += 1
+            mbti = row[0]
+            average_post_length = len(row[1])
+            excitement_score = main.get_excitement_score(row[1])
+            source_platform = 'reddit'
+
+    with open(reddit_post_file) as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if row[0] not in users:
+                user_id = i
+                i += 1
+                users[user_id][0] += len(row[1])
+                users[user_id][1] += 1
+            mbti = row[2]
+            average_post_length = users[user_id][0] / users[user_id][1]
+            excitement_score = main.get_excitement_score(users[user_id][0])
+            source_platform = 'reddit'
