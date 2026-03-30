@@ -20,6 +20,7 @@ import csv
 from typing import Optional
 
 import helper
+from main import MBTITree
 
 
 class User:
@@ -134,11 +135,11 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
     return list(user_registry.values())
 
 
-def reddit_user_files(mbti_file: str, reddit_post_file: str) -> list[User]:
+def reddit_user_files(misc_file: str, reddit_post_file: str) -> list[User]:
     """Returns a list of Users based on the reddit dataset.
 
     Preconditions:
-        - mbti_file is the path to a CSV file corresponding to a file with two columns,
+        - misc_file is the path to a CSV file corresponding to a file with two columns,
             where the left column is mbti type, and right column is the corresponding reddit text post.
         - reddit_post_file is the path to a CSV file corresponding to the reddit posts (small),
             where the leftmost column is the username, middle column is the text post,
@@ -148,7 +149,7 @@ def reddit_user_files(mbti_file: str, reddit_post_file: str) -> list[User]:
     users_and_post = {}
     user_list = []
 
-    with open(mbti_file) as f:
+    with open(misc_file) as f:
         reader = csv.reader(f)
         for row in reader:
             user = User()
@@ -178,6 +179,111 @@ def reddit_user_files(mbti_file: str, reddit_post_file: str) -> list[User]:
             user_list.append(user)
 
     return user_list
+
+
+def extract_user_features(user: User) -> dict[str, float]:
+    """Return a dictionary of numerical features for a given User."""
+
+    features = {
+        'average_post_length': float(user.average_post_length),
+        'excitement_score': float(user.excitement_score)
+    }
+
+    # Twitter-specific stats if they exist, otherwise default to 0.0
+    if user.source_platform == 'twitter':
+        features['followers'] = float(user.followers or 0)
+        features['following'] = float(user.following or 0)
+        features['hashtags_count'] = float(user.hashtags_count or 0)
+    else:
+        features['followers'] = 0.0
+        features['following'] = 0.0
+        features['hashtags_count'] = 0.0
+
+    return features
+
+
+def get_median_threshold(users: list[User], feature: str) -> float:
+    """Find the median value of a specific feature across a list of users."""
+    values = []
+    for u in users:
+        u_feats = extract_user_features(u)
+        values.append(u_feats[feature])
+
+    if not values:
+        return 0.0
+
+    sorted_values = sorted(values)
+    size = len(sorted_values)
+
+    if size % 2 == 1:
+        # Odd number of elements: take the middle one
+        return float(sorted_values[size // 2])
+    else:
+        # Even number: average the two middle elements
+        mid1 = sorted_values[size // 2 - 1]
+        mid2 = sorted_values[size // 2]
+        return (mid1 + mid2) / 2
+
+
+def find_best_split(users: list[User]) -> tuple[str, float]:
+    """Determine which feature provides the most accurate split using the median."""
+    features_to_test = ['average_post_length', 'excitement_score', 'followers', 'hashtags_count']
+
+    best_feature = features_to_test[0]
+    best_threshold = 0.0
+    max_correct_predictions = -1
+
+    for feature in features_to_test:
+        # 1. Get the median for this specific feature
+        threshold = get_median_threshold(users, feature)
+
+        # TODO Find a way for the best split -- what personalities are correlated w what features
+        # 2. Split the users into two groups based on that median
+        # left_group = [u for u in users if extract_user_features(u)[feature] < threshold]
+        # right_group = [u for u in users if extract_user_features(u)[feature] >= threshold]
+
+        # 3. Calculate how many correct predictions we'd make if we stopped here
+        # (Accuracy = Majority count in Left + Majority count in Right)
+        # current_correct = (get_majority_mbti_count(left_group) + get_majority_mbti_count(right_group))
+
+    raise NotImplementedError
+
+
+def build_mbti_tree(users: list[User], depth: int = 0, max_depth: int = 5) -> MBTITree:
+    """
+    Recursively builds an MBTITree using the median-split logic.
+    """
+    # Count MBTI types for this specific group of users
+    counts = {}
+    for u in users:
+        counts[u.mbti] = counts.get(u.mbti, 0) + 1
+
+    # 2. Check STOPPING CONDITIONS (Base Cases)
+    # Stop if: all users are the same type, list is too small, or we hit max depth
+    if len(counts) <= 1 or depth >= max_depth:
+        # Create a leaf node (feature and threshold are None)
+        return MBTITree(counts, '', 0.0)
+
+    # 3. Find the best feature to split on using the median
+    # This calls the function we wrote in the filtering file
+    feature, threshold = find_best_split(users)
+
+    # 4. Create the current node
+    node = MBTITree(counts, feature, threshold)
+
+    # 5. Split the data into two halves
+    left_users = [u for u in users if extract_user_features(u)[feature] < threshold]
+    right_users = [u for u in users if extract_user_features(u)[feature] >= threshold]
+
+    # Handle the edge case where a split doesn't actually divide the data
+    if not left_users or not right_users:
+        return MBTITree(counts, None, None)
+
+    # 6. Recursively build the left and right subtrees
+    node._left = build_mbti_tree(left_users, depth + 1, max_depth)
+    node._right = build_mbti_tree(right_users, depth + 1, max_depth)
+
+    return node
 
 
 if __name__ == '__main__':

@@ -71,26 +71,24 @@ class MBTITree(BinaryTree):
     """
     feature: str
     threshold: float
-    prediction: str
     mbti_counts: dict[str, int]
 
-    def __init__(self, mbti_counts: dict[str, int], feature: str, threshold: float) -> None:
+    def __init__(self, mbti_counts: dict[str, int], feature: str = '', threshold: float = 0.0) -> None:
 
-        max_so_far = 0
+        max_so_far = -1
         key_so_far = ''
         for key in mbti_counts:
             if mbti_counts[key] > max_so_far:
                 key_so_far = key
                 max_so_far = mbti_counts[key]
-        majority = key_so_far
 
-        self._root = mbti_counts
-        self._left = MBTITree(None)
-        self._right = MBTITree(None)
+        self._root = key_so_far
+        self._left = None
+        self._right = None
 
-        self.prediction = majority
         self.feature = feature
         self.threshold = threshold
+
 
     def add_split(self, feature: str, threshold: float,
                   left: MBTITree, right: MBTITree) -> None:
@@ -98,11 +96,13 @@ class MBTITree(BinaryTree):
 
         Also updates _root to a readable description of the split condition.
         """
-        self.feature = feature
-        self.threshold = threshold
+        # TODO root kya hai
+        # self._root      = f'{feature} < {threshold:.3f}'  # human-readable label
+
         self._left = left  # from BinaryTree — now explicit
         self._right = right  # from BinaryTree — now explicit
-        # self._root      = f'{feature} < {threshold:.3f}'  # human-readable label
+        self.feature = feature
+        self.threshold = threshold
 
     def predict(self, user_features: dict[str, float]) -> str:
         """Traverse the tree and return predicted MBTI type.
@@ -110,7 +110,7 @@ class MBTITree(BinaryTree):
         Uses _left and _right inherited from BinaryTree.
         """
         if self.is_leaf():  # inherited from BinaryTree
-            return self.prediction
+            return self._root
 
         if user_features[self.feature] < self.threshold:
             return self._left.predict(user_features)
