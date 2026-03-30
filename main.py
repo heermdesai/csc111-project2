@@ -37,8 +37,8 @@ class BinaryTree:
     def __init__(self, root: Optional[Any],
                  left: Optional[BinaryTree] = None,
                  right: Optional[BinaryTree] = None) -> None:
-        self._root  = root
-        self._left  = left
+        self._root = root
+        self._left = left
         self._right = right
 
     def is_empty(self) -> bool:
@@ -48,6 +48,7 @@ class BinaryTree:
     def is_leaf(self) -> bool:
         """Return True if this node has no children."""
         return self._left is None and self._right is None
+
 
 class MBTITree(BinaryTree):
     """A decision tree node for MBTI classification.
@@ -68,9 +69,9 @@ class MBTITree(BinaryTree):
         - not self.is_leaf() implies isinstance(self._left, MBTITree)
         - not self.is_leaf() implies isinstance(self._right, MBTITree)
     """
-    feature:     str
-    threshold:   float
-    prediction:  str
+    feature: str
+    threshold: float
+    prediction: str
     mbti_counts: dict[str, int]
 
     def __init__(self, mbti_counts: dict[str, int], feature: str, threshold: float) -> None:
@@ -99,8 +100,8 @@ class MBTITree(BinaryTree):
         """
         self.feature = feature
         self.threshold = threshold
-        self._left = left    # from BinaryTree — now explicit
-        self._right = right   # from BinaryTree — now explicit
+        self._left = left  # from BinaryTree — now explicit
+        self._right = right  # from BinaryTree — now explicit
         # self._root      = f'{feature} < {threshold:.3f}'  # human-readable label
 
     def predict(self, user_features: dict[str, float]) -> str:
@@ -108,7 +109,7 @@ class MBTITree(BinaryTree):
 
         Uses _left and _right inherited from BinaryTree.
         """
-        if self.is_leaf():           # inherited from BinaryTree
+        if self.is_leaf():  # inherited from BinaryTree
             return self.prediction
 
         if user_features[self.feature] < self.threshold:
@@ -118,14 +119,16 @@ class MBTITree(BinaryTree):
 
 
 if __name__ == '__main__':
-
     import python_ta.contracts
+
     python_ta.contracts.check_all_contracts()
 
     import doctest
+
     doctest.testmod()
 
     import python_ta
+
     python_ta.check_all(config={
         'max-line-length': 120,
         'disable': ['static_type_checker'],
