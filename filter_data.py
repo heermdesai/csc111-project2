@@ -150,21 +150,21 @@ def reddit_user_files(mbti_file: str, reddit_post_file: str) -> list[User]:
 
     with open(mbti_file) as f:
         reader = csv.reader(f)
-        user = User()
         for row in reader:
+            user = User()
             user.user_id = i
             i += 1
             user.mbti = row[0]
             user.average_post_length = len(row[1])
-            user.excitement_score = main.get_excitement_score(list(row[1]))
+            user.excitement_score = main.get_excitement_score([row[1]])
             user.source_platform = 'reddit'
 
             user_list.append(user)
 
     with open(reddit_post_file) as f:
         reader = csv.reader(f)
-        user = User()
         for row in reader:
+            user = User()
             if row[0] not in users_and_post:
                 user.user_id = i
                 i += 1
