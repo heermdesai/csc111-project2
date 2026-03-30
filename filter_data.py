@@ -177,3 +177,21 @@ def reddit_user_files(mbti_file: str, reddit_post_file: str) -> list[User]:
             user_list.append(user)
 
     return user_list
+
+
+if __name__ == '__main__':
+
+    import python_ta.contracts
+    python_ta.contracts.check_all_contracts()
+
+    import doctest
+    doctest.testmod()
+
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 120,
+        'disable': ['static_type_checker'],
+        'extra-imports': ['csv', 'networkx'],
+        'allowed-io': ['twitter_user_files', 'reddit_user_files'],
+        'max-nested-blocks': 4
+    })

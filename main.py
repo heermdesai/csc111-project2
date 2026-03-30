@@ -54,3 +54,21 @@ def get_excitement_score(posts: list[str]) -> float:
         length_so_far += len(post)
 
     return round((exclamatory_count / length_so_far), 2)
+
+
+if __name__ == '__main__':
+
+    import python_ta.contracts
+    python_ta.contracts.check_all_contracts()
+
+    import doctest
+    doctest.testmod()
+
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 120,
+        'disable': ['static_type_checker'],
+        'extra-imports': ['csv', 'networkx'],
+        'allowed-io': ['twitter_user_files', 'reddit_user_files'],
+        'max-nested-blocks': 4
+    })
