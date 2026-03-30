@@ -119,12 +119,11 @@ class MBTITree(BinaryTree):
 
 
 if __name__ == '__main__':
-    import python_ta.contracts
 
+    import python_ta.contracts
     python_ta.contracts.check_all_contracts()
 
     import doctest
-
     doctest.testmod()
 
     import python_ta
