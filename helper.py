@@ -15,7 +15,46 @@ expressly prohibited.
 This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 """
 
-# TODO: Add get_excitement_score
+
+def get_excitement_score(posts: list[str]) -> float:
+    """
+    Returns the average excitement score, 0.0 for no excitement, 1.0 for maximum excitement, for a user
+    given a list of their text posts. The excitement score is calculated as the ratio of "excitement characters," i.e.
+    anything outside the defined normal characters to the total number of characters.
+
+    >>> post1 = ['Yellow team for the win 🙊💛💛💛💛💛💛', 'RT @ChelseaFC: 2-2!!! ALONSO! 💪', 'i need sleep']
+    >>> post2 = ['i need sleep']
+    >>> post3 = ['🙊💛💛YAY']
+
+    >>> get_excitement_score(post1)
+    0.32
+    >>> get_excitement_score(post2)
+    0.0
+    >>> get_excitement_score(post3)
+    1.0
+    """
+
+    # TODO: could decide against this, but would be cool to id if caps characters are actually excitement as
+    #  opposed to just grammar or usernames or smthg
+
+    alphabet = 'abcdefghijklmnopqrstuvwxyz'
+    numbers = '0123456789'
+    punctuation = '.,:; '
+    socials = '@#$%&*(){}[]-/'
+
+    normal_characters = alphabet + numbers + punctuation + socials
+
+    exclamatory_count = 0
+    length_so_far = 0
+
+    for post in posts:
+        for i in range(len(post)):
+            if post[i] not in normal_characters:
+                exclamatory_count += 1
+        length_so_far += len(post)
+
+    return round((exclamatory_count / length_so_far), 2)
+
 
 if __name__ == '__main__':
 
