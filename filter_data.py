@@ -65,6 +65,23 @@ class User:
     followers: Optional[int] = None
     following: Optional[int] = None
 
+    def __init__(self, user_id, mbti, average_post_length, excitement_score, source_platform,
+                 length_of_bio=None, average_retweet_count=None, hashtags_count=None,
+                 followers=None, following=None):
+        """
+        Initializes a User
+        """
+        self.user_id = user_id
+        self.mbti = mbti
+        self.average_post_length = average_post_length
+        self.excitement_score = excitement_score
+        self.source_platform = source_platform
+        self.length_of_bio = length_of_bio
+        self.average_retweet_count = average_retweet_count
+        self.hashtags_count = hashtags_count
+        self.followers = followers
+        self.following = following
+
 
 def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
     """
