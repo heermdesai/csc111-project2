@@ -8,9 +8,9 @@ This Python module handles the main quiz and functions.
 
 Copyright and Usage Information
 ===============================
-This file is provided solely for the personal and private use of students
-taking CSC111 at the University of Toronto St. George campus, or any instructors
-grading. All forms of distribution of this code are expressly prohibited.
+This file is provided solely for the personal and private use of students taking CSC111 at the University
+of Toronto St. George campus, or any instructors grading. All forms of distribution of this code are
+expressly prohibited.
 
 This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 """
