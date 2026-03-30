@@ -9,9 +9,9 @@ for use across the project.
 
 Copyright and Usage Information
 ===============================
-This file is provided solely for the personal and private use of students
-taking CSC111 at the University of Toronto St. George campus, or any instructors
-grading. All forms of distribution of this code are expressly prohibited.
+This file is provided solely for the personal and private use of students taking CSC111 at the
+University of Toronto St. George campus, or any instructors grading. All forms of distribution of
+this code are expressly prohibited.
 
 This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 """
@@ -64,6 +64,24 @@ class User:
     hashtags_count: Optional[int] = None
     followers: Optional[int] = None
     following: Optional[int] = None
+
+    def __init__(self, user_id, mbti, average_post_length, excitement_score, source_platform,
+                 length_of_bio=None, average_retweet_count=None, hashtags_count=None,
+                 followers=None, following=None):
+        """
+        Initializes a User
+        """
+        self.user_id = user_id
+        self.mbti = mbti
+        self.average_post_length = average_post_length
+        self.excitement_score = excitement_score
+        self.source_platform = source_platform
+
+        self.length_of_bio = length_of_bio
+        self.average_retweet_count = average_retweet_count
+        self.hashtags_count = hashtags_count
+        self.followers = followers
+        self.following = following
 
 
 def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
@@ -160,3 +178,21 @@ def reddit_user_files(mbti_file: str, reddit_post_file: str) -> list[User]:
             user_list.append(user)
 
     return user_list
+
+
+if __name__ == '__main__':
+
+    import python_ta.contracts
+    python_ta.contracts.check_all_contracts()
+
+    import doctest
+    doctest.testmod()
+
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 120,
+        'disable': ['static_type_checker'],
+        'extra-imports': ['csv', 'networkx'],
+        'allowed-io': ['twitter_user_files', 'reddit_user_files'],
+        'max-nested-blocks': 4
+    })
