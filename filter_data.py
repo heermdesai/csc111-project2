@@ -76,6 +76,7 @@ class User:
         self.average_post_length = average_post_length
         self.excitement_score = excitement_score
         self.source_platform = source_platform
+
         self.length_of_bio = length_of_bio
         self.average_retweet_count = average_retweet_count
         self.hashtags_count = hashtags_count
