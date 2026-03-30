@@ -19,7 +19,7 @@ This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 import csv
 from typing import Optional
 
-import main
+import helper
 
 
 class User:
@@ -129,7 +129,7 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
             uid = int(row[0])
             if uid in user_registry:
                 tweets_list = row[1:]
-                user_registry[uid].post_sentiment = main.get_excitement_score(tweets_list)
+                user_registry[uid].post_sentiment = helper.get_excitement_score(tweets_list)
 
     return list(user_registry.values())
 
@@ -156,8 +156,8 @@ def reddit_user_files(mbti_file: str, reddit_post_file: str) -> list[User]:
             i += 1
             user.mbti = row[0]
             user.average_post_length = len(row[1])
-            user.excitement_score = main.get_excitement_score([row[1]])
-            user.source_platform = 'reddit'
+            user.excitement_score = helper.get_excitement_score([row[1]])
+            user.source_platform = 'miscellaneous'
 
             user_list.append(user)
 
@@ -172,7 +172,7 @@ def reddit_user_files(mbti_file: str, reddit_post_file: str) -> list[User]:
                 users_and_post[user.user_id][1] += 1
             user.mbti = row[2]
             user.average_post_length = users_and_post[user.user_id][0] / users_and_post[user.user_id][1]
-            user.excitement_score = main.get_excitement_score(users_and_post[user.user_id][0])
+            user.excitement_score = helper.get_excitement_score(users_and_post[user.user_id][0])
             user.source_platform = 'reddit'
 
             user_list.append(user)
@@ -192,7 +192,7 @@ if __name__ == '__main__':
     python_ta.check_all(config={
         'max-line-length': 120,
         'disable': ['static_type_checker'],
-        'extra-imports': ['csv', 'networkx'],
+        'extra-imports': ['csv'],
         'allowed-io': ['twitter_user_files', 'reddit_user_files'],
         'max-nested-blocks': 4
     })
