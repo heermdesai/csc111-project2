@@ -1,17 +1,17 @@
 """CSC111 Winter 2026 Project 2 Phase 2
 Predicting MBTI Personality Types Using Social Media Activity: A Data-Driven Decision Tree Approach
 
-Description
+Module Description
 ===============================
-This Python module handles the filtering and refactoring of external data into standard variables
-for use across the project.
-
+This module serves as the data processing pipeline for the project. It handles the
+ingestion, cleaning, and transformation of raw social media datasets into a standardized format
+for analysis using a new defined User class.
 
 Copyright and Usage Information
 ===============================
-This file is provided solely for the personal and private use of students taking CSC111 at the
-University of Toronto St. George campus, or any instructors grading. All forms of distribution of
-this code are expressly prohibited.
+This file is provided solely for the personal and private use of students taking
+CSC111 at the University of Toronto St. George campus, or any instructors grading.
+All forms of distribution of this code are expressly prohibited.
 
 This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 """
@@ -135,18 +135,14 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
     return list(user_registry.values())
 
 
-def reddit_user_files(misc_file: str, reddit_post_file: str) -> list[User]:
-    """Returns a list of Users based on the reddit dataset.
+def mixed_data(misc_file: str) -> list[User]:
+    """Returns a list of Users based on a dataset with miscellaneous textposts.
 
     Preconditions:
         - misc_file is the path to a CSV file corresponding to a file with two columns,
             where the left column is mbti type, and right column is the corresponding reddit text post.
-        - reddit_post_file is the path to a CSV file corresponding to the reddit posts (small),
-            where the leftmost column is the username, middle column is the text post,
-            and the rightmost column is the mbti type.
     """
     i = 0
-    users_and_post = {}
     user_list = []
 
     with open(misc_file) as f:
@@ -161,6 +157,20 @@ def reddit_user_files(misc_file: str, reddit_post_file: str) -> list[User]:
             user.source_platform = 'miscellaneous'
 
             user_list.append(user)
+
+    return user_list
+
+
+def reddit_user_files(reddit_post_file: str) -> list[User]:
+    """Returns a list of Users based on the reddit dataset.
+
+        - reddit_post_file is the path to a CSV file corresponding to the reddit posts (small),
+            where the leftmost column is the username, middle column is the text post,
+            and the rightmost column is the mbti type.
+    """
+    i = 0
+    users_and_post = {}
+    user_list = []
 
     with open(reddit_post_file) as f:
         reader = csv.reader(f)
