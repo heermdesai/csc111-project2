@@ -109,64 +109,77 @@ class MBTITree:
         else:
             return self._right.predict(user_features)
 
+    def build_mbti_tree(self, users: list[User], depth: int = 0, max_depth: int = 5) -> MBTITree:
+        """
+        Recursively builds an MBTITree using the median-split logic.
+        """
+
+        counts = {}
+        for u in users:
+            counts[u.mbti] = counts.get(u.mbti, 0) + 1
+
+        if len(counts) <= 1 or depth >= max_depth:
+            return MBTITree(counts)
+
+        feature, threshold = find_best_split(users)
+
+        node = MBTITree(counts, feature, threshold)
+
+        # Split the data into two halves
+        left_users = [v for v in users if extract_user_features(v)[feature] < threshold]
+        right_users = [v for v in users if extract_user_features(v)[feature] >= threshold]
+
+        # Recursively build the left and right subtrees
+        node._left = self.build_mbti_tree(left_users, depth + 1, max_depth)
+        node._right = self.build_mbti_tree(right_users, depth + 1, max_depth)
+
+        return node
+
 
 def find_best_split(users: list[User]) -> tuple[str, float]:
     """Determine which feature provides the most accurate split using the median."""
-    features_to_test = ['average_post_length', 'social_score', 'expressiveness_score', 'complexity_score',
-                        'structure_score']
+    features_to_test = ['average_post_length', 'social_score', 'expressiveness_score',
+                        'complexity_score', 'structure_score']
 
     best_feature = features_to_test[0]
-    best_threshold = 0.0
+    best_threshold = get_median_threshold(users, best_feature)
     max_correct_predictions = -1
 
     for feature in features_to_test:
-        # 1. Get the median for this specific feature
+        # Find the median threshold for this feature
         threshold = get_median_threshold(users, feature)
 
-        # TODO Find a way for the best split -- what personalities are correlated w what features
-        # 2. Split the users into two groups based on that median
-        # left_group = [u for u in users if extract_user_features(u)[feature] < threshold]
-        # right_group = [u for u in users if extract_user_features(u)[feature] >= threshold]
+        # Split users into two groups based on the median
+        left_group = [u for u in users if extract_user_features(u)[feature] < threshold]
+        right_group = [u for u in users if extract_user_features(u)[feature] >= threshold]
 
-        # 3. Calculate how many correct predictions we'd make if we stopped here
-        # (Accuracy = Majority count in Left + Majority count in Right)
-        # current_correct = (get_majority_mbti_count(left_group) + get_majority_mbti_count(right_group))
+        # Count how many users each group's majority label would correctly predict
+        left_correct = _get_majority_count(left_group)
+        right_correct = _get_majority_count(right_group)
+        total_correct = left_correct + right_correct
 
-    raise NotImplementedError
+        # Update best split if this feature performs better
+        if total_correct > max_correct_predictions:
+            max_correct_predictions = total_correct
+            best_feature = feature
+            best_threshold = threshold
+
+    return best_feature, best_threshold
 
 
-def build_mbti_tree(users: list[User], depth: int = 0, max_depth: int = 5) -> MBTITree:
-    """
-    Recursively builds an MBTITree using the median-split logic.
-    """
-    # Count MBTI types for this specific group of users
+def _get_majority_count(users: list[User]) -> int:
+    """Return the count of the most common MBTI type in a list of users."""
+    if not users:
+        return 0
+
     counts = {}
     for u in users:
-        counts[u.mbti] = counts.get(u.mbti, 0) + 1
+        if u.mbti in counts:
+            counts[u.mbti] += 1
+        else:
+            counts[u.mbti] = 1
 
-    # 2. Check STOPPING CONDITIONS (Base Cases)
-    # Stop if: all users are the same type, list is too small, or we hit max depth
-    if len(counts) <= 1 or depth >= max_depth:
-        # Create a leaf node (feature and threshold are None)
-        # Modify attributes inside MBTITree.
-        return MBTITree(counts)
-
-    # 3. Find the best feature to split on using the median
-    # This calls the function we wrote in the filtering file
-    feature, threshold = find_best_split(users)
-
-    # 4. Create the current node
-    node = MBTITree(counts, feature, threshold)
-
-    # 5. Split the data into two halves
-    left_users = [u for u in users if extract_user_features(u)[feature] < threshold]
-    right_users = [u for u in users if extract_user_features(u)[feature] >= threshold]
-
-    # 6. Recursively build the left and right subtrees
-    node._left = build_mbti_tree(left_users, depth + 1, max_depth)
-    node._right = build_mbti_tree(right_users, depth + 1, max_depth)
-
-    return node
+    return max(counts.values())
 
 
 if __name__ == '__main__':
