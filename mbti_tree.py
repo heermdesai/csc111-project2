@@ -56,6 +56,7 @@ class MBTITree:
     mbti_counts: dict[str, int]
     _left: Optional[MBTITree]
     _right: Optional[MBTITree]
+    _root: Optional[Any]
 
     def __init__(self, mbti_counts: dict[str, int], feature: str = '', threshold: float = 0.0) -> None:
         """
@@ -83,18 +84,18 @@ class MBTITree:
         """Return True if this node has no children."""
         return self._left is None and self._right is None
 
-    def add_split(self, feature: str, threshold: float,
-                  left: MBTITree, right: MBTITree) -> None:
-        """Turn this leaf into an internal node by attaching children and pdates _root to a
-        readable description of the split condition.
-        """
-        # TODO root kya hai
-        # self._root      = f'{feature} < {threshold:.3f}'  # human-readable label
-
-        self._left = left
-        self._right = right
-        self.feature = feature
-        self.threshold = threshold
+    # def add_split(self, feature: str, threshold: float,
+    #               left: MBTITree, right: MBTITree) -> None:
+    #     """Turn this leaf into an internal node by attaching children and pdates _root to a
+    #     readable description of the split condition.
+    #     """r
+    #     # no need cuz root is alr established bfr and not changed?
+    #     # self._root      = f'{feature} < {threshold:.3f}'  # human-readable label
+    #
+    #     self._left = left
+    #     self._right = right
+    #     self.feature = feature
+    #     self.threshold = threshold
 
     def predict(self, user_features: dict[str, float]) -> str:
         """
@@ -147,7 +148,8 @@ def build_mbti_tree(users: list[User], depth: int = 0, max_depth: int = 5) -> MB
     # Stop if: all users are the same type, list is too small, or we hit max depth
     if len(counts) <= 1 or depth >= max_depth:
         # Create a leaf node (feature and threshold are None)
-        return MBTITree(counts, '', 0.0)
+        # Modify attributes inside MBTITree.
+        return MBTITree(counts)
 
     # 3. Find the best feature to split on using the median
     # This calls the function we wrote in the filtering file
@@ -159,10 +161,6 @@ def build_mbti_tree(users: list[User], depth: int = 0, max_depth: int = 5) -> MB
     # 5. Split the data into two halves
     left_users = [u for u in users if extract_user_features(u)[feature] < threshold]
     right_users = [u for u in users if extract_user_features(u)[feature] >= threshold]
-
-    # Handle the edge case where a split doesn't actually divide the data
-    if not left_users or not right_users:
-        return MBTITree(counts, None, None)
 
     # 6. Recursively build the left and right subtrees
     node._left = build_mbti_tree(left_users, depth + 1, max_depth)
