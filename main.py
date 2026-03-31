@@ -15,6 +15,17 @@ All forms of distribution of this code are expressly prohibited.
 This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 """
 
+from filter_data import twitter_user_files, reddit_user_files, mixed_user_files
+from mbti_tree import MBTITree
+
+def run_mbti_test():
+
+    users = twitter_user_files() + reddit_user_files() + mixed_user_files()
+    tree = MBTITree()
+
+    tree.build_mbti_tree(users)
+
+
 
 if __name__ == '__main__':
     # Uncomment the following lines for code checking/debugging purposes.
