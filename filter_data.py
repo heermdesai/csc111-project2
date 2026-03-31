@@ -20,7 +20,7 @@ import csv
 from typing import Optional
 
 import helper
-from main import MBTITree
+from mbti_tree import MBTITree
 
 
 class User:
