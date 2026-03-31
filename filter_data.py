@@ -66,8 +66,8 @@ class User:
     followers: Optional[int] = None
     following: Optional[int] = None
 
-    def __init__(self, user_id, mbti, average_post_length, excitement_score, source_platform,
-                 length_of_bio=None, average_retweet_count=None, hashtags_count=None,
+    def __init__(self, user_id=0, mbti='', average_post_length=0.0, excitement_score=0.0,
+                 source_platform='miscellaneous', length_of_bio=None, average_retweet_count=None, hashtags_count=None,
                  followers=None, following=None):
         """
         Initializes a User
@@ -90,7 +90,7 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
     Returns a list of User objects populated by parsing three Twitter-sourced CSV files of the following format:
         - mbti: A file containing user IDs and MBTI personality type classifications.
         - info: A file containing user IDs and profile metrics like bio length, engagement stats, and follower counts.
-        - tweets: A file containing user IDs and raw tweet content used for calculating sentiment scores.
+        - tweets: A file containing user IDs and raw tweet content used for calculating excitement scores.
 
     Preconditions:
         - All input files must be in CSV format.
@@ -130,7 +130,7 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
             uid = int(row[0])
             if uid in user_registry:
                 tweets_list = row[1:]
-                user_registry[uid].post_sentiment = helper.get_excitement_score(tweets_list)
+                user_registry[uid].excitement_score = helper.get_excitement_score(tweets_list)
 
     return list(user_registry.values())
 

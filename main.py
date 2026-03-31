@@ -19,38 +19,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 
-class BinaryTree:
-    """A binary tree where every node has at most two children: left and right.
-
-    This is the base class. It handles the structure only —
-    no MBTI logic here.
-
-    Representation Invariants:
-        - self._root is None implies self._left is None and self._right is None
-        - self._left is not None implies self._root is not None
-        - self._right is not None implies self._root is not None
-    """
-    _root: Optional[Any]
-    _left: Optional[BinaryTree]
-    _right: Optional[BinaryTree]
-
-    def __init__(self, root: Optional[Any],
-                 left: Optional[BinaryTree] = None,
-                 right: Optional[BinaryTree] = None) -> None:
-        self._root = root
-        self._left = left
-        self._right = right
-
-    def is_empty(self) -> bool:
-        """Return True if this tree has no root (is empty)."""
-        return self._root is None
-
-    def is_leaf(self) -> bool:
-        """Return True if this node has no children."""
-        return self._left is None and self._right is None
-
-
-class MBTITree(BinaryTree):
+class MBTITree:
     """A decision tree node for MBTI classification.
 
     Inherits _root, _left, _right from BinaryTree.
@@ -89,6 +58,13 @@ class MBTITree(BinaryTree):
         self.feature = feature
         self.threshold = threshold
 
+    def is_empty(self) -> bool:
+        """Return True if this tree has no root (is empty)."""
+        return self._root is None
+
+    def is_leaf(self) -> bool:
+        """Return True if this node has no children."""
+        return self._left is None and self._right is None
 
     def add_split(self, feature: str, threshold: float,
                   left: MBTITree, right: MBTITree) -> None:
@@ -119,11 +95,12 @@ class MBTITree(BinaryTree):
 
 
 if __name__ == '__main__':
-
     import python_ta.contracts
+
     python_ta.contracts.check_all_contracts()
 
     import doctest
+
     doctest.testmod()
 
     import python_ta
