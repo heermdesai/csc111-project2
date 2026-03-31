@@ -18,7 +18,6 @@ This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 
 from __future__ import annotations
 from typing import Optional, Any
-
 from filter_data import User, extract_user_features, get_median_threshold
 
 
@@ -186,7 +185,7 @@ if __name__ == '__main__':
     python_ta.check_all(config={
         'max-line-length': 120,
         'disable': ['static_type_checker'],
-        'extra-imports': [],
+        'extra-imports': ['csv', 'main', 'linguistic_scores', 'filter_data'],
         'allowed-io': [],
         'max-nested-blocks': 4
     })

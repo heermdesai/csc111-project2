@@ -30,7 +30,7 @@ if __name__ == '__main__':
     python_ta.check_all(config={
         'max-line-length': 120,
         'disable': ['static_type_checker'],
-        'extra-imports': [],
+        'extra-imports': ['csv', 'linguistic_scores', 'mbti_tree', 'filter_data'],
         'allowed-io': [],
         'max-nested-blocks': 4
     })

@@ -17,10 +17,9 @@ This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 """
 
 import csv
-from typing import Optional
+# from typing import Optional
 
-import helper
-from mbti_tree import MBTITree
+import linguistic_scores
 
 
 class User:
@@ -31,7 +30,6 @@ class User:
     Instance Attributes:
         - user_id: A unique identifier sourced from Twitter data or generated internally for other users.
         - mbti: The Myers-Briggs Type Indicator used to classify the user's personality; case-sensitive (lower-case).
-        - source_platform: The specific social media service where the data originated.
         - average_post_length: The mean length of the user's published content.
         - social_score: A measure of outward social engagement, reflecting the E/I axis.
         - expressiveness_score: A measure of emotional expressiveness in language, reflecting the F/T axis.
@@ -41,13 +39,11 @@ class User:
     Representation Invariants:
         - mbti in {'entj', 'enfj', 'esfj', 'estj', 'entp', 'enfp', 'esfp', 'estp',
             'intj', 'infj', 'isfj', 'istj', 'intp', 'infp', 'isfp', 'istp'}
-        - source_platform in {'twitter', 'reddit', 'miscellaneous'}
 
     """
 
     user_id: int
     mbti: str
-    source_platform: str
     average_post_length: float
     social_score: float
     expressiveness_score: float
@@ -55,19 +51,25 @@ class User:
     structure_score: float
 
     def __init__(self, user_id: int = 0, mbti: str = '', average_post_length: float = 0.0,
-                 social_score: float = 0.0, expressiveness_score: float = 0.0, complexity_score: float = 0.0,
-                 structure_score: float = 0.0, source_platform: str = 'miscellaneous') -> None:
-        """Initializes a User."""
+                 scores: dict[str, float] = None) -> None:
+        """Initializes a User.
+        The scores dict is expected to contain the keys: 'social_score', 'expressiveness_score',
+        'complexity_score', and 'structure_score'. Any missing keys default to 0.0."""
+
         self.user_id = user_id
         self.mbti = mbti
         self.average_post_length = average_post_length
-        self.social_score = social_score
-        self.expressiveness_score = expressiveness_score
-        self.complexity_score = complexity_score
-        self.structure_score = structure_score
-        self.source_platform = source_platform
+
+        scores = scores or {}
+        self.social_score = scores.get('social_score', 0.0)
+        self.expressiveness_score = scores.get('expressiveness_score', 0.0)
+        self.complexity_score = scores.get('complexity_score', 0.0)
+        self.structure_score = scores.get('structure_score', 0.0)
 
 
+# ===============================
+# CSV FILES PROCESSING
+# ===============================
 def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
     """
     Returns a list of User objects populated by parsing three Twitter-sourced CSV files:
@@ -90,7 +92,6 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
             new_user = User()
             new_user.user_id = uid
             new_user.mbti = row[1]
-            new_user.source_platform = 'twitter'
             user_registry[uid] = new_user
 
     with open(info) as info_file:
@@ -105,44 +106,16 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
         for row in reader:
             uid = int(row[0])
             if uid in user_registry:
-                tweets_list = [t for t in row[1:] if t]  # filter empty strings
-                features = helper.get_linguistic_features(tweets_list)
-                user_registry[uid].social_score = helper.calculate_social_score(features)
-                user_registry[uid].expressiveness_score = helper.calculate_expressiveness_score(features)
-                user_registry[uid].complexity_score = helper.calculate_complexity_score(features)
-                user_registry[uid].structure_score = helper.calculate_structure_score(features)
+                tweets_list = [t for t in row[1:] if t]
+
+                scores = _compute_scores(tweets_list)
+                user = user_registry[uid]
+                user.social_score = scores['social_score']
+                user.expressiveness_score = scores['expressiveness_score']
+                user.complexity_score = scores['complexity_score']
+                user.structure_score = scores['structure_score']
 
     return list(user_registry.values())
-
-
-def mixed_data(misc_file: str) -> list[User]:
-    """Returns a list of Users based on a dataset with miscellaneous textposts.
-
-    Preconditions:
-        - misc_file is the path to a CSV file with two columns, where the left column is mbti type,
-          and right column is the corresponding text post.
-    """
-    user_list = []
-
-    with open(misc_file) as f:
-        reader = csv.reader(f)
-        for i, row in enumerate(reader):
-            post = row[1]
-            features = helper.get_linguistic_features([post])
-
-            user = User(
-                user_id=i,
-                mbti=row[0],
-                average_post_length=float(len(post)),
-                social_score=helper.calculate_social_score(features),
-                expressiveness_score=helper.calculate_expressiveness_score(features),
-                complexity_score=helper.calculate_complexity_score(features),
-                structure_score=helper.calculate_structure_score(features),
-                source_platform='miscellaneous'
-            )
-            user_list.append(user)
-
-    return user_list
 
 
 def reddit_user_files(reddit_post_file: str) -> list[User]:
@@ -168,23 +141,59 @@ def reddit_user_files(reddit_post_file: str) -> list[User]:
     user_list = []
     for i, (username, data) in enumerate(username_data.items()):
         total_length, post_count, mbti, posts = data
-        features = helper.get_linguistic_features(posts)
-
         user = User(
             user_id=i,
             mbti=mbti,
             average_post_length=float(total_length / post_count),
-            social_score=helper.calculate_social_score(features),
-            expressiveness_score=helper.calculate_expressiveness_score(features),
-            complexity_score=helper.calculate_complexity_score(features),
-            structure_score=helper.calculate_structure_score(features),
-            source_platform='reddit'
+            scores=_compute_scores(posts)
         )
         user_list.append(user)
 
     return user_list
 
 
+def mixed_user_files(misc_file: str) -> list[User]:
+    """Returns a list of Users based on a dataset with miscellaneous textposts.
+
+    Preconditions:
+        - misc_file is the path to a CSV file with two columns, where the left column is mbti type,
+          and right column is the corresponding text post.
+    """
+    user_list = []
+
+    with open(misc_file) as f:
+        reader = csv.reader(f)
+        for i, row in enumerate(reader):
+            post = row[1]
+            user = User(
+                user_id=i,
+                mbti=row[0],
+                average_post_length=float(len(post)),
+                scores=_compute_scores([post])
+            )
+            user_list.append(user)
+
+    return user_list
+
+
+def _compute_scores(posts: list[str]) -> dict[str, float]:
+    """Compute all four MBTI dimension scores from a list of posts.
+
+    This is a private helper to avoid repeating the same four calculate_* calls
+    in every data loading function.
+    """
+    features = linguistic_scores.get_linguistic_features(posts)
+    return {
+        'social_score': linguistic_scores.calculate_social_score(features),
+        'expressiveness_score': linguistic_scores.calculate_expressiveness_score(features),
+        'complexity_score': linguistic_scores.calculate_complexity_score(features),
+        'structure_score': linguistic_scores.calculate_structure_score(features),
+    }
+
+
+# ===============================
+# TREE BUILDING HELPERS
+# ===============================
 def extract_user_features(user: User) -> dict[str, float]:
     """Return a dictionary of numerical features for a given User."""
     return {
@@ -233,7 +242,7 @@ if __name__ == '__main__':
     python_ta.check_all(config={
         'max-line-length': 120,
         'disable': ['static_type_checker'],
-        'extra-imports': ['csv'],
-        'allowed-io': ['twitter_user_files', 'reddit_user_files'],
+        'extra-imports': ['csv', 'main', 'linguistic_scores', 'mbti_tree'],
+        'allowed-io': ['twitter_user_files', 'reddit_user_files', 'mixed_user_files'],
         'max-nested-blocks': 4
     })

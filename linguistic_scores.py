@@ -36,9 +36,9 @@ def calculate_complexity_score(features: dict[str, float]) -> float:
           abstract thinking.
     """
     return (
-        features['lexical_diversity'] * 10.0 +  # Breadth and variety of vocabulary
-        features['question_density'] * 2.0 +    # Exploratory, speculative thinking
-        features['ellipsis_density'] * 1.5      # Comfort with open-ended, unresolved thoughts
+        features['lexical_diversity'] * 10.0  # Breadth and variety of vocabulary
+        + features['question_density'] * 2.0  # Exploratory, speculative thinking
+        + features['ellipsis_density'] * 1.5  # Comfort with open-ended, unresolved thoughts
     )
 
 
@@ -59,10 +59,10 @@ def calculate_social_score(features: dict[str, float]) -> float:
           but it's a weaker social signal since it doesn't require personal interaction.
     """
     score = (
-        features['tag_density'] * 5.0 +      # Direct interaction with others
-        features['we_pronoun_rate'] * 3.0 +  # Group-oriented thinking
-        features['hashtag_density'] * 2.0 +  # Participation in broader communities
-        features['link_density'] * 1.0       # Passive information sharing
+        features['tag_density'] * 5.0        # Direct interaction with others
+        + features['we_pronoun_rate'] * 3.0  # Group-oriented thinking
+        + features['hashtag_density'] * 2.0  # Participation in broader communities
+        + features['link_density'] * 1.0     # Passive information sharing
     )
     return score
 
@@ -90,10 +90,10 @@ def calculate_expressiveness_score(features: dict[str, float]) -> float:
     expressiveness_from_capitals = _classify_capital_density(features['capital_density'])[0]
 
     score = (
-        features['emoji_density'] * 4.0 +
-        features['exclamation_density'] * 3.0 +
-        features['i_pronoun_rate'] * 2.0 +
-        expressiveness_from_capitals
+        features['emoji_density'] * 4.0
+        + features['exclamation_density'] * 3.0
+        + features['i_pronoun_rate'] * 2.0
+        + expressiveness_from_capitals
     )
     return score
 
@@ -120,9 +120,9 @@ def calculate_structure_score(features: dict[str, float]) -> float:
     structure_from_capitals = _classify_capital_density(features['capital_density'])[1]
 
     score = (
-        features['lexical_diversity'] * 2.0 +
-        structure_from_capitals +
-        - features['ellipsis_density'] * 4.0 +
+        features['lexical_diversity'] * 2.0
+        + structure_from_capitals
+        - features['ellipsis_density'] * 4.0
         - features['exclamation_density'] * 1.5
     )
     return score
@@ -209,7 +209,7 @@ if __name__ == '__main__':
     python_ta.check_all(config={
         'max-line-length': 120,
         'disable': ['static_type_checker'],
-        'extra-imports': [],
+        'extra-imports': ['csv', 'main', 'mbti_tree', 'filter_data', 'emoji'],
         'allowed-io': [],
         'max-nested-blocks': 4
     })
