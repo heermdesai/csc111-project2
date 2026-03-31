@@ -112,7 +112,8 @@ class MBTITree:
 
 def find_best_split(users: list[User]) -> tuple[str, float]:
     """Determine which feature provides the most accurate split using the median."""
-    features_to_test = ['average_post_length', 'excitement_score', 'followers', 'hashtags_count']
+    features_to_test = ['average_post_length', 'social_score', 'expressiveness_score', 'complexity_score',
+                        'structure_score']
 
     best_feature = features_to_test[0]
     best_threshold = 0.0
