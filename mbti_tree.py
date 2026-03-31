@@ -116,7 +116,10 @@ class MBTITree:
 
         counts = {}
         for u in users:
-            counts[u.mbti] = counts.get(u.mbti, 0) + 1
+            if u.mbti in counts:
+                counts[u.mbti] += 1
+            else:
+                counts[u.mbti] = 1
 
         if len(counts) <= 1 or depth >= max_depth:
             return MBTITree(counts)
