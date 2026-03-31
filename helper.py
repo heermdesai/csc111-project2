@@ -57,6 +57,8 @@ def get_excitement_score(posts: list[str]) -> float:
 
 
 if __name__ == '__main__':
+    # Uncomment the following lines for code checking/debugging purposes.
+    # We recommend commenting out these lines when working with large datasets to reduce runtime.
 
     import python_ta.contracts
     python_ta.contracts.check_all_contracts()

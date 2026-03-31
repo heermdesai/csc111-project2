@@ -287,6 +287,8 @@ def build_mbti_tree(users: list[User], depth: int = 0, max_depth: int = 5) -> MB
 
 
 if __name__ == '__main__':
+    # Uncomment the following lines for code checking/debugging purposes.
+    # We recommend commenting out these lines when working with large datasets to reduce runtime.
 
     import python_ta.contracts
     python_ta.contracts.check_all_contracts()
