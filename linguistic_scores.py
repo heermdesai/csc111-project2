@@ -24,21 +24,15 @@ def calculate_complexity_score(features: dict[str, float]) -> float:
     Higher scores suggest iNtuition (N) traits — preference for patterns, ideas, and abstraction.
     Lower scores suggest Sensing (S) traits — preference for concrete facts and practicality.
 
-    Scoring rationale:
-        - Lexical diversity is the dominant signal: a wide and varied vocabulary suggests
-          someone who thinks in abstract, nuanced terms rather than plain, literal language.
-          It is weighted most heavily as a result.
-        - Question density reflects exploratory, speculative thinking. Intuitive types
-          are more likely to pose open-ended questions and think out loud about possibilities.
-        - Ellipsis density captures trailing, open-ended thoughts ("and then maybe..."),
-          which suggests someone comfortable with ambiguity — a hallmark of intuitive types.
-          It is weighted least since ellipses can also appear in casual writing unrelated to
-          abstract thinking.
+    Weights:
+    - Lexical diversity (10.0): Primary indicator of abstract, nuanced thought.
+    - Question density (2.0): Reflects speculative and exploratory thinking.
+    - Ellipsis density (1.5): Captures comfort with ambiguity and open-ended ideas.
     """
     return (
-        features['lexical_diversity'] * 10.0  # Breadth and variety of vocabulary
-        + features['question_density'] * 2.0  # Exploratory, speculative thinking
-        + features['ellipsis_density'] * 1.5  # Comfort with open-ended, unresolved thoughts
+        features['lexical_diversity'] * 10.0
+        + features['question_density'] * 2.0
+        + features['ellipsis_density'] * 1.5
     )
 
 
@@ -48,21 +42,17 @@ def calculate_social_score(features: dict[str, float]) -> float:
 
     Higher scores suggest Extroversion (E); lower scores suggest Introversion (I).
 
-    Scoring rationale:
-        - Tag density is weighted most heavily because directly mentioning others (@user)
-          is the clearest signal of active, outward social engagement.
-        - We-pronoun rate reflects group identity and collective thinking,
-          which is characteristic of socially oriented people.
-        - Hashtag density captures community participation — joining broader
-          conversations rather than posting in isolation.
-        - Link density is weighted least: sharing information can indicate engagement,
-          but it's a weaker social signal since it doesn't require personal interaction.
+    Weights:
+    - Tag density (5.0): Primary indicator of direct, outward interaction (@user).
+    - We-pronoun rate (3.0): Reflects group-oriented identity and collective thinking.
+    - Hashtag density (2.0): Captures active participation in broader communities.
+    - Link density (1.0): Represents passive information sharing and engagement.
     """
     score = (
-        features['tag_density'] * 5.0        # Direct interaction with others
-        + features['we_pronoun_rate'] * 3.0  # Group-oriented thinking
-        + features['hashtag_density'] * 2.0  # Participation in broader communities
-        + features['link_density'] * 1.0     # Passive information sharing
+        features['tag_density'] * 5.0
+        + features['we_pronoun_rate'] * 3.0
+        + features['hashtag_density'] * 2.0
+        + features['link_density'] * 1.0
     )
     return score
 
@@ -74,18 +64,12 @@ def calculate_expressiveness_score(features: dict[str, float]) -> float:
     Higher scores suggest Feeling (F) traits — decisions guided by empathy and emotion.
     Lower scores suggest Thinking (T) traits — decisions guided by logic and analysis.
 
-    Scoring rationale:
-        - Emoji density is the strongest signal since emojis are a deliberate choice to
-          communicate emotion visually, which is strongly associated with feeling-oriented types.
-        - Exclamation density reflects enthusiasm and emotional intensity in writing —
-          feeling types tend to express excitement and warmth more openly.
-        - I-pronoun rate captures personal, self-referential language. Feeling types
-          are more likely to frame things through personal experience and emotional perspective
-          rather than detached, objective statements.
-        - Capital density contributes here only when it exceeds the threshold defined in
-          _classify_capital_density. High capital density signals ALL CAPS emotional writing,
-          which is an expressiveness marker. Below the threshold, it flows to structure_score
-          instead.
+    Weights:
+    - Emoji density (4.0): Primary visual indicator of deliberate emotional communication.
+    - Exclamation density (3.0): Reflects enthusiasm, warmth, and emotional intensity.
+    - I-pronoun rate (2.0): Captures personal, self-referential, and subjective framing.
+    - Capital density (Variable): High density signals emotional "all caps" writing
+      (via _classify_capital_density).
     """
     expressiveness_from_capitals = _classify_capital_density(features['capital_density'])[0]
 
@@ -105,17 +89,12 @@ def calculate_structure_score(features: dict[str, float]) -> float:
     Higher scores suggest Judging (J) traits — preference for order, planning, and closure.
     Lower scores suggest Perceiving (P) traits — preference for spontaneity and flexibility.
 
-    Scoring rationale:
-        - Lexical diversity: choosing precise, varied words suggests intentional and controlled expression,
-          which aligns with the deliberate nature of judging types. The weight is lower than in complexity
-          because diversity alone doesn't confirm structure.
-        - Ellipsis density is subtracted with the highest weight because trailing off ("...") is the clearest
-          written signal of unresolved, open-ended thinking — the opposite of the closure-oriented mindset of
-          judging types.
-        - Exclamation density is subtracted because heavy exclamation use signals impulsive, reactive expression,
-          which is more characteristic of perceiving types who respond spontaneously rather than deliberately.
-        - Capital density contributes here only when it falls below the threshold defined in _classify_capital_density.
-          Moderate capitals suggest deliberate emphasis and careful formatting
+    Weights:
+    - Lexical diversity (2.0): Suggests intentional, precise, and controlled expression.
+    - Capital density (Variable): Moderate use indicates deliberate formatting
+      (via _classify_capital_density).
+    - Ellipsis density (-4.0): Penalizes trailing, open-ended, or unresolved thoughts.
+    - Exclamation density (-1.5): Penalizes impulsive or reactive spontaneity.
     """
     structure_from_capitals = _classify_capital_density(features['capital_density'])[1]
 
@@ -130,20 +109,20 @@ def calculate_structure_score(features: dict[str, float]) -> float:
 
 def _classify_capital_density(capital_density: float) -> tuple[float, float]:
     """
-    Returns a tuple of (expressiveness_contribution, structure_contribution), where only one value
-    is non-zero depending on which side of the threshold the input falls on.
-    Moderate use suggests deliberate emphasis and structured writing (J trait), while very high use
-    suggests ALL CAPS emotional expression (F trait).
+    Classify capital density as either an emotional or structural signal.
 
-    The threshold of 0.15 reflects that in typical writing, roughly 10-15% capital
-    density is expected from proper nouns, sentence starts, and deliberate emphasis.
-    Beyond that, all-caps emotional writing becomes the more likely explanation.
+    Returns:
+        (expressiveness_contribution, structure_contribution)
+
+    Logic:
+    - High density (>= 0.05): Interpreted as "ALL CAPS" emotional writing (F trait).
+    - Low/Moderate density (< 0.05): Interpreted as deliberate, structured formatting (J trait).
+
+    In most writing, 2-4% of capital density is expected for proper grammar.
+    https://english.stackexchange.com/questions/43563/what-percentage-of-characters-in-normal-english-literature-
+    is-written-in-capital
     """
 
-    # in most writing, roughly 2-4% capital density is expected for proper grammar
-    # analysis of capital density in novels:
-    # https://english.stackexchange.com/questions/43563/what-percentage-of-characters-in-...
-    # ...normal-english-literature-is-written-in-capital
     capital_threshold = 0.05
 
     if capital_density >= capital_threshold:
@@ -155,7 +134,17 @@ def _classify_capital_density(capital_density: float) -> tuple[float, float]:
 
 
 def get_linguistic_features(posts: list[str]) -> dict[str, float]:
-    """Extract linguistic traits from a list of posts and return averaged metrics."""
+    """
+    Extract and average linguistic metrics from a list of text posts.
+
+    Returns a dictionary mapping feature names to their mean values across all posts.
+    Metrics include punctuation density (exclamations, questions, ellipses),
+    formatting (capitals), social markers (tags, hashtags, links, emojis),
+    and lexical analysis (diversity, I/We pronoun rates).
+
+    Preconditions:
+    - posts is a list of strings; empty strings are skipped in density calculations.
+    """
     if not posts:
         return {}
 
