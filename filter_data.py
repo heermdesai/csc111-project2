@@ -125,31 +125,42 @@ def reddit_user_files(reddit_post_file: str) -> list[User]:
         - reddit_post_file is the path to a CSV file where the leftmost column is the username,
           the middle column is the text post, and the rightmost column is the mbti type.
     """
-    # Maps username -> [total_post_length, post_count, mbti, list_of_posts]
-    username_data = {}
+    user_registry = {}
+    user_posts = {}  # Track posts separately to compute scores at the end
+    uid = 0
 
     with open(reddit_post_file) as f:
         reader = csv.reader(f)
         for row in reader:
             username, post, mbti = row[0], row[1], row[2]
-            if username not in username_data:
-                username_data[username] = [0, 0, mbti, []]
-            username_data[username][0] += len(post)
-            username_data[username][1] += 1
-            username_data[username][3].append(post)
 
-    user_list = []
-    for i, (username, data) in enumerate(username_data.items()):
-        total_length, post_count, mbti, posts = data
-        user = User(
-            user_id=i,
-            mbti=mbti,
-            average_post_length=float(total_length / post_count),
-            scores=_compute_scores(posts)
-        )
-        user_list.append(user)
+            if username not in user_registry:
+                new_user = User()
+                new_user.user_id = uid
+                new_user.mbti = mbti
+                new_user.average_post_length = 0.0
 
-    return user_list
+                user_registry[username] = new_user
+                user_posts[username] = []
+                uid += 1
+
+            user = user_registry[username]
+            user_posts[username].append(post)
+
+            # temporarily store total length in average_post_length; divide by count later
+            user.average_post_length += len(post)
+
+    for username, user in user_registry.items():
+        posts = user_posts[username]
+        user.average_post_length = user.average_post_length/len(posts)
+
+        scores = _compute_scores(posts)
+        user.social_score = scores['social_score']
+        user.expressiveness_score = scores['expressiveness_score']
+        user.complexity_score = scores['complexity_score']
+        user.structure_score = scores['structure_score']
+
+    return list(user_registry.values())
 
 
 def mixed_user_files(misc_file: str) -> list[User]:
@@ -160,18 +171,27 @@ def mixed_user_files(misc_file: str) -> list[User]:
           and right column is the corresponding text post.
     """
     user_list = []
+    uid = 0
 
-    with open(misc_file) as f:
-        reader = csv.reader(f)
-        for i, row in enumerate(reader):
+    with open(misc_file) as misc:
+        reader = csv.reader(misc)
+        for row in reader:
+            mbti_type = row[0]
             post = row[1]
-            user = User(
-                user_id=i,
-                mbti=row[0],
-                average_post_length=float(len(post)),
-                scores=_compute_scores([post])
-            )
-            user_list.append(user)
+
+            new_user = User()
+            new_user.user_id = uid
+            new_user.mbti = mbti_type
+            new_user.average_post_length = float(len(post))
+
+            scores = _compute_scores([post])
+            new_user.social_score = scores['social_score']
+            new_user.expressiveness_score = scores['expressiveness_score']
+            new_user.complexity_score = scores['complexity_score']
+            new_user.structure_score = scores['structure_score']
+
+            user_list.append(new_user)
+            uid += 1
 
     return user_list
 
