@@ -24,7 +24,8 @@ def run_mbti_test():
     tree = MBTITree()
 
     tree.build_mbti_tree(users)
-
+    # Function of asking questions and returning a dict which can be passed into predict
+    # return tree.predict()
 
 
 if __name__ == '__main__':
