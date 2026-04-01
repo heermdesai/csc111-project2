@@ -15,7 +15,7 @@ All forms of distribution of this code are expressly prohibited.
 
 This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 """
-from filter_data import User, extract_user_features, get_median_threshold
+from filter_data import User
 
 
 def find_best_split(users: list[User], features_to_test: list[str]) -> tuple[str, float]:
@@ -65,6 +65,40 @@ def _get_majority_count(users: list[User]) -> int:
         return 0
     counts = get_count(users)
     return max(counts.values())
+
+
+def extract_user_features(user: User) -> dict[str, float]:
+    """Return a dictionary of numerical features for a given User."""
+    return {
+        'average_post_length': user.average_post_length,
+        'social_score': user.social_score,
+        'expressiveness_score': user.expressiveness_score,
+        'complexity_score': user.complexity_score,
+        'structure_score': user.structure_score,
+    }
+
+
+def get_median_threshold(users: list[User], feature: str) -> float:
+    """Find the median value of a specific feature across a list of users."""
+    values = []
+    for u in users:
+        u_feats = extract_user_features(u)
+        values.append(u_feats[feature])
+
+    if not values:
+        return 0.0
+
+    sorted_values = sorted(values)
+    size = len(sorted_values)
+
+    if size % 2 == 1:
+        # Odd number of elements: take the middle one
+        return float(sorted_values[size // 2])
+    else:
+        # Even number: average the two middle elements
+        mid1 = sorted_values[size // 2 - 1]
+        mid2 = sorted_values[size // 2]
+        return (mid1 + mid2) / 2
 
 
 if __name__ == '__main__':

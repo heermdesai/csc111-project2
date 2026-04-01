@@ -184,6 +184,21 @@ def get_linguistic_features(posts: list[str]) -> dict[str, float]:
     return {k: v / len(posts) for k, v in totals.items()}
 
 
+def compute_scores(posts: list[str]) -> dict[str, float]:
+    """Compute all four MBTI dimension scores from a list of posts.
+
+    This is a private helper to avoid repeating the same four calculate_* calls
+    in every data loading function.
+    """
+    features = get_linguistic_features(posts)
+    return {
+        'social_score': calculate_social_score(features),
+        'expressiveness_score': calculate_expressiveness_score(features),
+        'complexity_score': calculate_complexity_score(features),
+        'structure_score': calculate_structure_score(features),
+    }
+
+
 if __name__ == '__main__':
     # Uncomment the following lines for code checking/debugging purposes.
     # We recommend commenting out these lines when working with large datasets to reduce runtime.
