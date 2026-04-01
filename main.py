@@ -81,6 +81,10 @@ class MBTITree:
         self.threshold = threshold
         self.mbti_counts = mbti_counts
 
+    def get_subtrees(self) -> tuple[Optional[MBTITree], Optional[MBTITree]]:
+        """Returns a tuple of the left and right subtrees of the current node"""
+        return self._left, self._right
+
     def build_mbti_tree(self, users: list[User], features: list[str] = None,
                         depth: int = 0, max_depth: int = 5) -> MBTITree:
         """
@@ -111,18 +115,21 @@ class MBTITree:
 
         return node
 
-    def predict(self) -> str:
+    def predict(self, answers: dict[str, float]) -> str:
         """
         Traverses the tree and return predicted MBTI type.
         """
         if self._left is None and self._right is None:
             return self._root
 
-        user_score = ask_user(self)
+        # user_score = answers[self.feature]
+        user_score = ask_user()
 
         if user_score < self.threshold:
+            # return self._left.predict(answers)
             return self._left.predict()
         else:
+            # return self._right.predict(answers)
             return self._right.predict()
 
 

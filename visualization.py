@@ -1,135 +1,144 @@
-"""..."""
-
 import pygame
-from main import MBTITree
+# from main import MBTITree
+# from filter_data import twitter_user_files, reddit_user_files, mixed_user_files
+
+pygame.init()
+
+# window
+W, H = 1000, 750
+screen = pygame.display.set_mode((W, H))
+pygame.display.set_caption("MBTI Personality Quiz")
 
 # colors
 WHITE = (255, 255, 255)
-BLUE = (118, 156, 188)
-BLUE_HOVER = (101, 144, 180)
 BLACK = (0, 0, 0)
+BLUE = (118, 156, 188)
+HOVER = (101, 144, 180)
 
-# values
-WIDTH = 800
-HEIGHT = 200
-MARGIN = 52
-BUTTON_HEIGHT = 55
-BUTTON_GAP = 10
+# font
+font = pygame.font.SysFont('Arial', 25)
+font_result = pygame.font.SysFont('Arial', 55)
 
-QUESTIONS = {
-        "social_score": "I actively engage with others online by tagging them, using hashtags, or sharing links.",
-        "complexity_score": "I prefer using abstract metaphors and a sophisticated vocabulary over simple facts.",
-        "expressiveness_score": "My writing is often filled with emotion, exclamation points, and emojis.",
-        "structure_score": "I put a lot of effort into making my posts organized and grammatically correct.",
-        "average_post_length": "I usually write long, detailed explanations rather than short snippets."
-}
-
+# ── question + options ─────────────────────────────────
+QUESTIONS = {"social_score": "I actively engage with others online by tagging them, using hashtags, or sharing links.",
+             "complexity_score": "I prefer using abstract metaphors and a sophisticated vocabulary over simple facts.",
+             "expressiveness_score": "My writing is often filled with emotion, exclamation points, and emojis.",
+             "structure_score": "I put a lot of effort into making my posts organized and grammatically correct.",
+             "average_post_length": "I usually write long, detailed explanations rather than short snippets."
+             }
 OPTIONS = [
-    ('Strongly disagree', 0.0),
-    ('Disagree', 0.25),
-    ('Neutral', 0.5),
-    ('Agree', 0.75),
-    ('Strongly agree', 1.0),
+    ("Strongly disagree", 0.0),
+    ("Disagree", 0.25),
+    ("Neutral", 0.5),
+    ("Agree", 0.75),
+    ("Strongly agree", 1.0),
 ]
 
+# choice buttons
+choices = []
+y = 200
+for _ in OPTIONS:
+    c = pygame.Rect(100, y, 500, 50)
+    choices.append(c)
+    y += 60
 
-class MBTIQuizWindow:
-    """..."""
-    tree: MBTITree
-    curr_node: MBTITree
-    path: list[tuple[str, float, str]]
-    result: str
-    hovered: int
-
-    def __init__(self, tree: MBTITree):
-        pygame.init()
-        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption('MBTI Personality Quiz')
-
-        self.font = pygame.font.Font('Georgia', 15)
-        self.font_result = pygame.font.Font('Georgia', 55, bold=True)
-
-        self.tree = tree
-        self.curr_node = self.tree
-        self.path = []
-        self.result = ''
-        self.hovered = -1
-
-    def _get_depth(self) -> int:
-        """Returns how many questions have been answered so far."""
-        return len(self.path)
+# vars
+running = True
+curr_question = 0
+question_types = list(QUESTIONS)
+answers = {
+    "social_score": 0.0,
+    "complexity_score": 0.0,
+    "expressiveness_score": 0.0,
+    "structure_score": 0.0,
+    "average_post_length": 0.0
+}
 
 
-############ DRAWINGS ############
-def _option_boxes() -> list[pygame.Rect]:
-    """Returns a list of rectangles representing the option boxes."""
-    boxes = []
-    y = 200
-    for x in OPTIONS:
-        boxes.append(pygame.Rect(MARGIN, y, WIDTH - MARGIN * 2, BUTTON_HEIGHT))
-        y += BUTTON_HEIGHT + BUTTON_GAP
+#
+def wrap_text(text: str, font: pygame.font.Font, max_width: int) -> list[str]:
+    """Split text on newlines first, then word-wrap each line to max_width."""
+    lines = []
+    for paragraph in text.split('\n'):
+        words = paragraph.split()
+        current = ''
+        for word in words:
+            test = (current + ' ' + word).strip()
+            if font.size(test)[0] <= max_width:
+                current = test
+            else:
+                if current:
+                    lines.append(current)
+                current = word
+        if current:
+            lines.append(current)
+    return lines
 
-    return boxes
+# users = (twitter_user_files('mbti_labels.csv', 'user_info.csv', 'user_tweets.csv')
+#          + reddit_user_files('reddit_post_small.csv')
+#          + mixed_user_files('misc_text_posts.csv'))
+#
+# tree = MBTITree()
+# loaded_tree = tree.build_mbti_tree(users)
 
 
-############ EVENTS ############
-def handle_click(self, position: tuple[int, int]) -> None:
-    """Respond to mouse click"""
-    if self.result:
-        self._restart()
-        return
+# main loop
+while running:
+    screen.fill(WHITE)
+    mouse_position = pygame.mouse.get_pos()
 
-    choices = self._option_boxes()
-    i = 0
-    for c in choices:
-        if c.collidepoint(position):
+    # events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        if event.type == pygame.MOUSEBUTTONDOWN and curr_question < len(QUESTIONS):
+            key = question_types[curr_question]
+            i = 0
+            for rect in choices:
+                if rect.collidepoint(mouse_position):
+                    answers[key] = OPTIONS[i][1]
+                    curr_question += 1
+                i += 1
+
+    if curr_question < len(QUESTIONS):
+        key = question_types[curr_question]
+
+        # drawing the question
+        # text = font.render(QUESTIONS[key], True, BLACK)
+        # screen.blit(text, (100, 100))
+
+        # drawing the choices
+        lines = wrap_text(QUESTIONS[key], font, W - 200)
+        y_text = 100
+        for line in lines:
+            text_change = font.render(line, True, BLACK)
+            screen.blit(text_change, text_change.get_rect(center=(W//2, y_text)))
+            y_text += 30
+
+        i = 0
+        for rect in choices:
             label, score = OPTIONS[i]
-            feature = self.current_node.feature
 
-            self.path.append((feature, score, label))
-        i += 1
+            color = HOVER if rect.collidepoint(mouse_position) else BLUE
+            pygame.draw.rect(screen, color, rect)
 
-    subtrees = self.current_node.get_subtrees()
-    if self.score < self.current_node.threshold:
-        next_node = subtrees[0]
+            t = font.render(label, True, BLACK)
+            screen.blit(t, (rect.x + 10, rect.y + 15))
+
+            i += 1
+
     else:
-        next_node = subtrees[1]
+        # result screen
+        total = sum(answers[x] for x in answers)
+        result = f"Total score: {round(total, 2)}"
 
-    if next is None:
-        self.result = self._root
-    else:
-        self.current_node = next_node
+        # mbti_type = loaded_tree.predict(answers)
+        # result = f"Your type: {mbti_type.upper()}"
 
+        text = font_result.render(result, True, BLACK)
+        screen.blit(text, (100, 200))
 
-def handle_hover(self, position: tuple[int, int]) -> None:
-    """Track where the mouse is hovering."""
-    if self.result:
-        self.hovered = -1
-        return
-    self.hovered = -1
-    i = 0
-    for rect in self._option_rects():
-        if rect.collidepoint(position):
-            self.hovered = i
-        i += 1
+    pygame.display.flip()
 
-
-#### DRAW FRAME ####
-def draw(self) -> None:
-    """..."""
-    self.screen.fill(WHITE)
-    if self.result:
-        self._draw_result()
-    else:
-        self._draw_question()
-
-
-def _draw_question(self) -> None:
-    """..."""
-    node = self.current_node
-    depth = self._get_depth()
-    total = 5
-    feature = node.feature
-
-    question = QUESTIONS[feature]
-    lines = wrap_text(question, self.font_q, W - MARGIN * 2)
+pygame.quit()
