@@ -108,7 +108,7 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
             if uid in user_registry:
                 tweets_list = [t for t in row[1:] if t]
 
-                scores = _compute_scores(tweets_list)
+                scores = linguistic_scores.compute_scores(tweets_list)
                 user = user_registry[uid]
                 user.social_score = scores['social_score']
                 user.expressiveness_score = scores['expressiveness_score']
@@ -154,7 +154,7 @@ def reddit_user_files(reddit_post_file: str) -> list[User]:
         posts = user_posts[username]
         user.average_post_length = user.average_post_length / len(posts)
 
-        scores = _compute_scores(posts)
+        scores = linguistic_scores.compute_scores(posts)
         user.social_score = scores['social_score']
         user.expressiveness_score = scores['expressiveness_score']
         user.complexity_score = scores['complexity_score']
@@ -184,7 +184,7 @@ def mixed_user_files(misc_file: str) -> list[User]:
             new_user.mbti = mbti_type
             new_user.average_post_length = float(len(post))
 
-            scores = _compute_scores([post])
+            scores = linguistic_scores.compute_scores([post])
             new_user.social_score = scores['social_score']
             new_user.expressiveness_score = scores['expressiveness_score']
             new_user.complexity_score = scores['complexity_score']
@@ -194,58 +194,6 @@ def mixed_user_files(misc_file: str) -> list[User]:
             uid += 1
 
     return user_list
-
-
-def _compute_scores(posts: list[str]) -> dict[str, float]:
-    """Compute all four MBTI dimension scores from a list of posts.
-
-    This is a private helper to avoid repeating the same four calculate_* calls
-    in every data loading function.
-    """
-    features = linguistic_scores.get_linguistic_features(posts)
-    return {
-        'social_score': linguistic_scores.calculate_social_score(features),
-        'expressiveness_score': linguistic_scores.calculate_expressiveness_score(features),
-        'complexity_score': linguistic_scores.calculate_complexity_score(features),
-        'structure_score': linguistic_scores.calculate_structure_score(features),
-    }
-
-
-# ===============================
-# TREE BUILDING HELPERS
-# ===============================
-def extract_user_features(user: User) -> dict[str, float]:
-    """Return a dictionary of numerical features for a given User."""
-    return {
-        'average_post_length': user.average_post_length,
-        'social_score': user.social_score,
-        'expressiveness_score': user.expressiveness_score,
-        'complexity_score': user.complexity_score,
-        'structure_score': user.structure_score,
-    }
-
-
-def get_median_threshold(users: list[User], feature: str) -> float:
-    """Find the median value of a specific feature across a list of users."""
-    values = []
-    for u in users:
-        u_feats = extract_user_features(u)
-        values.append(u_feats[feature])
-
-    if not values:
-        return 0.0
-
-    sorted_values = sorted(values)
-    size = len(sorted_values)
-
-    if size % 2 == 1:
-        # Odd number of elements: take the middle one
-        return float(sorted_values[size // 2])
-    else:
-        # Even number: average the two middle elements
-        mid1 = sorted_values[size // 2 - 1]
-        mid2 = sorted_values[size // 2]
-        return (mid1 + mid2) / 2
 
 
 if __name__ == '__main__':

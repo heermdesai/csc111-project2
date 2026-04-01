@@ -18,9 +18,8 @@ This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 from __future__ import annotations
 from typing import Optional, Any
 
-from filter_data import twitter_user_files, reddit_user_files, mixed_user_files
-from filter_data import User, extract_user_features
-from mbti_helper import find_best_split, get_count
+from filter_data import User, twitter_user_files, reddit_user_files, mixed_user_files
+from mbti_helper import find_best_split, get_count, extract_user_features
 
 
 class MBTITree:
@@ -156,11 +155,12 @@ def ask_user(tree: MBTITree) -> float:
     print("  4 - Agree")
     print("  5 - Strongly Agree")
 
-    while True:
+    user_input = input("Enter 1–5: ").strip()
+    while user_input not in scale:
+        print("Invalid input. Please enter a number from 1 to 5.")
         user_input = input("Enter 1–5: ").strip()
-        if user_input in scale:
-            return scale[user_input]
-        print("  Invalid input. Please enter a number from 1 to 5.")
+
+    return scale[user_input]
 
 
 def run_mbti_test() -> None:
@@ -169,12 +169,12 @@ def run_mbti_test() -> None:
              + reddit_user_files('reddit_post_small.csv')
              + mixed_user_files('misc_text_posts.csv'))
 
-    base_tree = MBTITree()
-    trained_tree = base_tree.build_mbti_tree(users)
+    tree = MBTITree()
+    loaded_tree = tree.build_mbti_tree(users)
 
     print("Welcome to the MBTI Personality Predictor Quiz!")
     # Start the prediction process from the root
-    final_type = trained_tree.predict()
+    final_type = loaded_tree.predict()
 
     print(f"\nYour predicted MBTI type is: {final_type.upper()}")
 
