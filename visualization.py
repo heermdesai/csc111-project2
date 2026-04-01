@@ -1,6 +1,6 @@
 import pygame
-# from main import MBTITree
-# from filter_data import twitter_user_files, reddit_user_files, mixed_user_files
+from main import MBTITree
+from filter_data import twitter_user_files, reddit_user_files, mixed_user_files
 
 pygame.init()
 
@@ -55,7 +55,7 @@ answers = {
 }
 
 
-#
+# CHAT
 def wrap_text(text: str, font: pygame.font.Font, max_width: int) -> list[str]:
     """Split text on newlines first, then word-wrap each line to max_width."""
     lines = []
@@ -74,12 +74,16 @@ def wrap_text(text: str, font: pygame.font.Font, max_width: int) -> list[str]:
             lines.append(current)
     return lines
 
-# users = (twitter_user_files('mbti_labels.csv', 'user_info.csv', 'user_tweets.csv')
-#          + reddit_user_files('reddit_post_small.csv')
-#          + mixed_user_files('misc_text_posts.csv'))
-#
-# tree = MBTITree()
-# loaded_tree = tree.build_mbti_tree(users)
+
+users = (twitter_user_files('mbti_labels.csv', 'user_info.csv', 'user_tweets.csv')
+         + reddit_user_files('reddit_post_small.csv')
+         + mixed_user_files('misc_text_posts.csv'))
+
+tree = MBTITree()
+loaded_tree = tree.build_mbti_tree(users)
+
+current_node = loaded_tree   # pointer that moves down the tree as user answers
+result = ''                  # filled in once we hit a leaf
 
 
 # main loop
@@ -92,14 +96,39 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        if event.type == pygame.MOUSEBUTTONDOWN and curr_question < len(QUESTIONS):
+        if event.type == pygame.MOUSEBUTTONDOWN and curr_question < len(question_types):
+
             key = question_types[curr_question]
             i = 0
             for rect in choices:
                 if rect.collidepoint(mouse_position):
-                    answers[key] = OPTIONS[i][1]
+                    answers[key] = OPTIONS[i][1]  # store score
                     curr_question += 1
-                i += 1
+                    i += 1
+                    # if event.type == pygame.MOUSEBUTTONDOWN and curr_question < len(QUESTIONS):
+        #     key = question_types[curr_question]
+        #     # i = 0
+        #     # for rect in choices:
+        #     #     if rect.collidepoint(mouse_position):
+        #     #         answers[key] = OPTIONS[i][1]
+        #     #         curr_question += 1
+        #     #     i += 1
+        #     for i, rect in enumerate(choices):
+        #         if rect.collidepoint(mouse_position):
+        #             answers[key] = OPTIONS[i][1]
+        #             curr_question += 1
+        #             score = OPTIONS[i][1]
+        #
+        #             # go left if below threshold, right if at or above
+        #             if score < current_node.threshold:
+        #                 current_node = current_node.get_left
+        #             else:
+        #                 current_node = current_node.get_right
+        #
+        #             # check if we've landed on a leaf
+        #             if current_node is None or current_node.is_leaf():
+        #                 target = current_node if current_node is not None else current_node
+        #                 result = (target.get_root or 'unknown').upper()
 
     if curr_question < len(QUESTIONS):
         key = question_types[curr_question]
@@ -130,11 +159,11 @@ while running:
 
     else:
         # result screen
-        total = sum(answers[x] for x in answers)
-        result = f"Total score: {round(total, 2)}"
+        # total = sum(answers[x] for x in answers)
+        # result = f"Total score: {round(total, 2)}"
 
-        # mbti_type = loaded_tree.predict(answers)
-        # result = f"Your type: {mbti_type.upper()}"
+        mbti_type = loaded_tree.predict(answers)
+        result = f"Your type: {mbti_type.upper()}"
 
         text = font_result.render(result, True, BLACK)
         screen.blit(text, (100, 200))

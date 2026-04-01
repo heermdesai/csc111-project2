@@ -122,15 +122,29 @@ class MBTITree:
         if self._left is None and self._right is None:
             return self._root
 
-        # user_score = answers[self.feature]
-        user_score = ask_user()
+        user_score = answers[self.feature]
+        # user_score = ask_user()
 
         if user_score < self.threshold:
-            # return self._left.predict(answers)
-            return self._left.predict()
+            return self._left.predict(answers)
+            # return self._left.predict()
         else:
-            # return self._right.predict(answers)
-            return self._right.predict()
+            return self._right.predict(answers)
+            # return self._right.predict()
+
+    @property
+    def get_left(self):
+        """..."""
+        return self._left
+
+    @property
+    def get_right(self):
+        """..."""
+        return self._right
+
+    def get_root(self):
+        """..."""
+        return self._root
 
 
 def ask_user(tree: MBTITree) -> float:

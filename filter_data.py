@@ -85,7 +85,7 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
     """
     user_registry = {}
 
-    with open(mbti) as mbti_file:
+    with open(mbti, encoding="utf-8") as mbti_file:
         reader = csv.reader(mbti_file)
         next(reader)
         for row in reader:
@@ -95,7 +95,7 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
             new_user.mbti = row[1]
             user_registry[uid] = new_user
 
-    with open(info) as info_file:
+    with open(info, encoding="utf-8") as info_file:
         reader = csv.reader(info_file)
         next(reader)
         for row in reader:
@@ -103,7 +103,7 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
             if uid in user_registry:
                 user_registry[uid].average_post_length = float(row[21])
 
-    with open(tweets) as tweets_file:
+    with open(tweets, encoding="utf-8") as tweets_file:
         reader = csv.reader(tweets_file)
         next(reader)
         for row in reader:
@@ -137,7 +137,7 @@ def reddit_user_files(reddit_post_file: str) -> list[User]:
     user_posts = {}  # Track posts separately to compute scores at the end
     uid = 0
 
-    with open(reddit_post_file) as f:
+    with open(reddit_post_file, encoding="utf-8") as f:
         reader = csv.reader(f)
         for row in reader:
             username, post, mbti = row[0], row[1], row[2]
@@ -181,7 +181,7 @@ def mixed_user_files(misc_file: str) -> list[User]:
     user_list = []
     uid = 0
 
-    with open(misc_file) as misc:
+    with open(misc_file, encoding="utf-8") as misc:
         reader = csv.reader(misc)
         for row in reader:
             mbti_type = row[0]
