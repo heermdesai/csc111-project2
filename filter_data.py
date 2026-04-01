@@ -87,6 +87,7 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
 
     with open(mbti) as mbti_file:
         reader = csv.reader(mbti_file)
+        next(reader)
         for row in reader:
             uid = int(row[0])
             new_user = User()
@@ -96,6 +97,7 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
 
     with open(info) as info_file:
         reader = csv.reader(info_file)
+        next(reader)
         for row in reader:
             uid = int(row[0])
             if uid in user_registry:
@@ -103,6 +105,7 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
 
     with open(tweets) as tweets_file:
         reader = csv.reader(tweets_file)
+        next(reader)
         for row in reader:
             uid = int(row[0])
             if uid in user_registry:
