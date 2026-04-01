@@ -112,20 +112,22 @@ class MBTITree:
 
         return node
 
-    def predict(self, user_features: dict[str, float]) -> str:
+    def predict(self) -> str:
         """
         Traverses the tree and return predicted MBTI type.
         """
         if self._left is None and self._right is None:
             return self._root
 
-        if user_features[self.feature] < self.threshold:
-            return self._left.predict(user_features)
+        user_score = ask_user(self)
+
+        if user_score < self.threshold:
+            return self._left.predict()
         else:
-            return self._right.predict(user_features)
+            return self._right.predict()
 
 
-def ask_user(tree: MBTITree) -> dict[str, float]:
+def ask_user(tree: MBTITree) -> float:
     """
     Asks the user to enter their feature values.
     """
@@ -137,10 +139,12 @@ def ask_user(tree: MBTITree) -> dict[str, float]:
         "average_post_length": "I usually write long, detailed explanations rather than short snippets."
     }
 
+    t = tree.threshold
+
     scale = {
         "1": 0.0,
         "2": 0.25,
-        "3": 0.5,
+        "3": 0.50,
         "4": 0.75,
         "5": 1.0,
     }
@@ -157,24 +161,24 @@ def ask_user(tree: MBTITree) -> dict[str, float]:
     while True:
         user_input = input("Enter 1–5: ").strip()
         if user_input in scale:
-            score = scale[user_input]
-            return {tree.feature: score}
+            return scale[user_input]
         print("  Invalid input. Please enter a number from 1 to 5.")
 
 
 def run_mbti_test() -> None:
-    """
-    Runs the MBTI test
-    """
-
+    """Runs the MBTI test"""
     users = (twitter_user_files('mbti_labels.csv', 'user_info.csv', 'user_tweets.csv')
              + reddit_user_files('reddit_post_small.csv')
              + mixed_user_files('misc_text_posts.csv'))
-    tree = MBTITree()
 
-    tree.build_mbti_tree(users)
-    # Function of asking questions and returning a dict which can be passed into predict
-    # return tree.predict()
+    base_tree = MBTITree()
+    trained_tree = base_tree.build_mbti_tree(users)
+
+    print("Welcome to the MBTI Personality Predictor Quiz!")
+    # Start the prediction process from the root
+    final_type = trained_tree.predict()
+
+    print(f"\nYour predicted MBTI type is: {final_type.upper()}")
 
 
 if __name__ == '__main__':
