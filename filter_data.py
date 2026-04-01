@@ -37,7 +37,7 @@ class User:
         - structure_score: A measure of deliberateness and structural control in writing, reflecting the J/P axis.
 
     Representation Invariants:
-        - mbti in {'entj', 'enfj', 'esfj', 'estj', 'entp', 'enfp', 'esfp', 'estp',
+        - self.mbti in {'entj', 'enfj', 'esfj', 'estj', 'entp', 'enfp', 'esfp', 'estp',
             'intj', 'infj', 'isfj', 'istj', 'intp', 'infp', 'isfp', 'istp'}
 
     """
