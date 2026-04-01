@@ -139,8 +139,6 @@ def ask_user(tree: MBTITree) -> float:
         "average_post_length": "I usually write long, detailed explanations rather than short snippets."
     }
 
-    t = tree.threshold
-
     scale = {
         "1": 0.0,
         "2": 0.25,
