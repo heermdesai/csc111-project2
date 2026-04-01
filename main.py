@@ -115,36 +115,22 @@ class MBTITree:
 
         return node
 
-    def predict(self, answers: dict[str, float]) -> str:
+    def predict(self, answers: Optional[dict[str, float]] = None) -> str:
         """
         Traverses the tree and return predicted MBTI type.
         """
         if self._left is None and self._right is None:
             return self._root
 
-        user_score = answers[self.feature]
-        # user_score = ask_user()
+        if answers is None:
+            user_score = ask_user(self)
+        else:
+            user_score = answers[self.feature]
 
         if user_score < self.threshold:
             return self._left.predict(answers)
-            # return self._left.predict()
         else:
             return self._right.predict(answers)
-            # return self._right.predict()
-
-    @property
-    def get_left(self):
-        """..."""
-        return self._left
-
-    @property
-    def get_right(self):
-        """..."""
-        return self._right
-
-    def get_root(self):
-        """..."""
-        return self._root
 
 
 def ask_user(tree: MBTITree) -> float:
@@ -158,6 +144,8 @@ def ask_user(tree: MBTITree) -> float:
         "structure_score": "I put a lot of effort into making my posts organized and grammatically correct.",
         "average_post_length": "I usually write long, detailed explanations rather than short snippets."
     }
+
+    t = tree.threshold
 
     scale = {
         "1": 0.0,

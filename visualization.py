@@ -18,30 +18,21 @@ import pygame
 from main import MBTITree
 from filter_data import twitter_user_files, reddit_user_files, mixed_user_files
 
-pygame.init()
-
-# window
+# --- Constants & Configuration ---
 W, H = 1000, 750
-screen = pygame.display.set_mode((W, H))
-pygame.display.set_caption("MBTI Personality Quiz")
-
-# colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 BLUE = (118, 156, 188)
-HOVER = (101, 144, 180)
+HOVER_COLOR = (101, 144, 180)
 
-# font
-font = pygame.font.SysFont('Arial', 25)
-font_result = pygame.font.SysFont('Arial', 55)
+QUESTIONS = {
+    "social_score": "I actively engage with others online by tagging them, using hashtags, or sharing links.",
+    "complexity_score": "I prefer using abstract metaphors and a sophisticated vocabulary over simple facts.",
+    "expressiveness_score": "My writing is often filled with emotion, exclamation points, and emojis.",
+    "structure_score": "I put a lot of effort into making my posts organized and grammatically correct.",
+    "average_post_length": "I usually write long, detailed explanations rather than short snippets."
+}
 
-# ── question + options ─────────────────────────────────
-QUESTIONS = {"social_score": "I actively engage with others online by tagging them, using hashtags, or sharing links.",
-             "complexity_score": "I prefer using abstract metaphors and a sophisticated vocabulary over simple facts.",
-             "expressiveness_score": "My writing is often filled with emotion, exclamation points, and emojis.",
-             "structure_score": "I put a lot of effort into making my posts organized and grammatically correct.",
-             "average_post_length": "I usually write long, detailed explanations rather than short snippets."
-             }
 OPTIONS = [
     ("Strongly disagree", 0.0),
     ("Disagree", 0.25),
@@ -50,140 +41,145 @@ OPTIONS = [
     ("Strongly agree", 1.0),
 ]
 
-# choice buttons
-choices = []
-y = 200
-for _ in OPTIONS:
-    c = pygame.Rect(100, y, 500, 50)
-    choices.append(c)
-    y += 60
 
-# vars
-running = True
-curr_question = 0
-question_types = list(QUESTIONS)
-answers = {
-    "social_score": 0.0,
-    "complexity_score": 0.0,
-    "expressiveness_score": 0.0,
-    "structure_score": 0.0,
-    "average_post_length": 0.0
-}
-
-
-# CHAT
-def wrap_text(text: str, font: pygame.font.Font, max_width: int) -> list[str]:
-    """Split text on newlines first, then word-wrap each line to max_width."""
+def wrap_text(text: str, font_obj: pygame.font.Font, max_width: int) -> list[str]:
+    """Word-wrap text to fit within a specific width."""
+    words = text.split()
     lines = []
-    for paragraph in text.split('\n'):
-        words = paragraph.split()
-        current = ''
-        for word in words:
-            test = (current + ' ' + word).strip()
-            if font.size(test)[0] <= max_width:
-                current = test
-            else:
-                if current:
-                    lines.append(current)
-                current = word
-        if current:
-            lines.append(current)
+    current_line = ""
+
+    for word in words:
+        test_line = (current_line + " " + word).strip()
+        if font_obj.size(test_line)[0] <= max_width:
+            current_line = test_line
+        else:
+            lines.append(current_line)
+            current_line = word
+    lines.append(current_line)
     return lines
 
 
-users = (twitter_user_files('mbti_labels.csv', 'user_info.csv', 'user_tweets.csv')
-         + reddit_user_files('reddit_post_small.csv')
-         + mixed_user_files('misc_text_posts.csv'))
+def run_quiz() -> None:
+    """Run the Pygame UI loop."""
+    pygame.init()
+    screen = pygame.display.set_mode((W, H))
+    pygame.display.set_caption("MBTI Personality Quiz")
 
-tree = MBTITree()
-loaded_tree = tree.build_mbti_tree(users)
+    font = pygame.font.SysFont('Helvetica', 25)
+    font_result = pygame.font.SysFont('Helvetica', 55, bold=True)
 
-current_node = loaded_tree   # pointer that moves down the tree as user answers
-result = ''                  # filled in once we hit a leaf
+    # Initialize Data and Tree
+    users = (twitter_user_files('mbti_labels.csv', 'user_info.csv', 'user_tweets.csv')
+             + reddit_user_files('reddit_post_small.csv')
+             + mixed_user_files('misc_text_posts.csv'))
+
+    tree_manager = MBTITree()
+    loaded_tree = tree_manager.build_mbti_tree(users)
+
+    # UI State
+    running = True
+    curr_q_idx = 0
+    question_keys = list(QUESTIONS)
+    user_answers = {key: 0.0 for key in QUESTIONS}
+
+    # Create Buttons (Centered)
+    button_width = 400
+    button_height = 50
+    choices_rects = []
+
+    for i in range(len(OPTIONS)):
+        # Calculate Y position: start at 250 and move down 70 pixels per button
+        rect = pygame.Rect((W // 2 - button_width // 2), 250 + (i * 70),
+                           button_width, button_height)
+        choices_rects.append(rect)
+
+    # code adapted from Gemini, particularly for conciseness in logic since the original code
+    # was unnecessarily complex since it was adapted from a previous pygame high school project
+    while running:
+        screen.fill(WHITE)
+        mouse_pos = pygame.mouse.get_pos()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN and curr_q_idx < len(question_keys):
+                clicked_idx = handle_mouse_click(mouse_pos, choices_rects)
+                if clicked_idx != -1:
+                    user_answers[question_keys[curr_q_idx]] = OPTIONS[clicked_idx][1]
+                    curr_q_idx += 1
+
+        if curr_q_idx < len(question_keys):
+            draw_quiz_ui(screen, font, curr_q_idx, question_keys, choices_rects, mouse_pos)
+        else:
+            display_results(screen, font_result, font, loaded_tree.predict(user_answers))
+
+        pygame.display.flip()
+    pygame.quit()
 
 
-# main loop
-while running:
-    screen.fill(WHITE)
-    mouse_position = pygame.mouse.get_pos()
+def handle_mouse_click(mouse_pos: tuple[int, int], choices_rects: list[pygame.Rect]) -> int:
+    """Check which button was clicked and return its index. Return -1 if none."""
+    for i in range(len(choices_rects)):
+        if choices_rects[i].collidepoint(mouse_pos):
+            return i
+    return -1
 
-    # events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
 
-        if event.type == pygame.MOUSEBUTTONDOWN and curr_question < len(question_types):
+def draw_quiz_ui(screen: pygame.Surface, font: pygame.font.Font,
+                 curr_q_idx: int, question_keys: list[str],
+                 choices_rects: list[pygame.Rect], mouse_pos: tuple[int, int]) -> None:
+    """Handle all drawing for the question and buttons."""
+    current_key = question_keys[curr_q_idx]
+    wrapped_lines = wrap_text(QUESTIONS[current_key], font, W - 100)
 
-            key = question_types[curr_question]
-            i = 0
-            for rect in choices:
-                if rect.collidepoint(mouse_position):
-                    answers[key] = OPTIONS[i][1]  # store score
-                    curr_question += 1
-                    i += 1
-                    # if event.type == pygame.MOUSEBUTTONDOWN and curr_question < len(QUESTIONS):
-        #     key = question_types[curr_question]
-        #     # i = 0
-        #     # for rect in choices:
-        #     #     if rect.collidepoint(mouse_position):
-        #     #         answers[key] = OPTIONS[i][1]
-        #     #         curr_question += 1
-        #     #     i += 1
-        #     for i, rect in enumerate(choices):
-        #         if rect.collidepoint(mouse_position):
-        #             answers[key] = OPTIONS[i][1]
-        #             curr_question += 1
-        #             score = OPTIONS[i][1]
-        #
-        #             # go left if below threshold, right if at or above
-        #             if score < current_node.threshold:
-        #                 current_node = current_node.get_left
-        #             else:
-        #                 current_node = current_node.get_right
-        #
-        #             # check if we've landed on a leaf
-        #             if current_node is None or current_node.is_leaf():
-        #                 target = current_node if current_node is not None else current_node
-        #                 result = (target.get_root or 'unknown').upper()
+    # Draw Question
+    for i in range(len(wrapped_lines)):
+        txt_surface = font.render(wrapped_lines[i], True, BLACK)
+        screen.blit(txt_surface, txt_surface.get_rect(center=(W // 2, 100 + i * 35)))
 
-    if curr_question < len(QUESTIONS):
-        key = question_types[curr_question]
+    # Draw Buttons
+    for i in range(len(choices_rects)):
+        rect = choices_rects[i]
+        color = HOVER_COLOR if rect.collidepoint(mouse_pos) else BLUE
+        pygame.draw.rect(screen, color, rect, border_radius=8)
 
-        # drawing the question
-        # text = font.render(QUESTIONS[key], True, BLACK)
-        # screen.blit(text, (100, 100))
+        label_text = font.render(OPTIONS[i][0], True, BLACK)
+        label_rect = label_text.get_rect(center=rect.center)
+        screen.blit(label_text, label_rect)
 
-        # drawing the choices
-        lines = wrap_text(QUESTIONS[key], font, W - 200)
-        y_text = 100
-        for line in lines:
-            text_change = font.render(line, True, BLACK)
-            screen.blit(text_change, text_change.get_rect(center=(W//2, y_text)))
-            y_text += 30
 
-        i = 0
-        for rect in choices:
-            label, score = OPTIONS[i]
+def display_results(screen: pygame.Surface, f_big: pygame.font.Font,
+                    f_small: pygame.font.Font, mbti_type: str) -> None:
+    """Draw the final result screen."""
+    res_str = f"Your Predicted Type: {mbti_type.upper()}"
+    res_surface = f_big.render(res_str, True, BLACK)
+    screen.blit(res_surface, res_surface.get_rect(center=(W // 2, H // 2)))
 
-            color = HOVER if rect.collidepoint(mouse_position) else BLUE
-            pygame.draw.rect(screen, color, rect)
+    hint_surface = f_small.render("Close window to exit", True, (150, 150, 150))
+    screen.blit(hint_surface, hint_surface.get_rect(center=(W // 2, H // 2 + 100)))
 
-            t = font.render(label, True, BLACK)
-            screen.blit(t, (rect.x + 10, rect.y + 15))
 
-            i += 1
+if __name__ == '__main__':
+    # Uncomment the following lines for code checking/debugging purposes.
+    # We recommend commenting out these lines when working with large datasets to reduce runtime.
 
-    else:
-        # result screen
-        # total = sum(answers[x] for x in answers)
-        # result = f"Total score: {round(total, 2)}"
+    import python_ta.contracts
+    python_ta.contracts.check_all_contracts()
 
-        mbti_type = loaded_tree.predict(answers)
-        result = f"Your type: {mbti_type.upper()}"
+    import doctest
+    doctest.testmod()
 
-        text = font_result.render(result, True, BLACK)
-        screen.blit(text, (100, 200))
+    import python_ta
+    python_ta.check_all(config={
+        'max-line-length': 120,
 
-    pygame.display.flip()
+        # 'E1101' added to allow pygame method usage,
+        # 'R0914' and 'R0913' added because using multiple locals and arguments is required,
+        # splitting logic would make code unnecessarily broken up/hard to follow
+        'disable': ['static_type_checker', 'E1101', 'R0914', 'R0913'],
 
-pygame.quit()
+        'extra-imports': ['filter_data', 'linguistic_scores', 'mbti_helper', 'main', 'pygame'],
+        'allowed-io': ['ask_user', 'run_mbti_test'],
+        'max-nested-blocks': 4
+    })
