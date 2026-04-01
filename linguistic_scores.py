@@ -198,7 +198,7 @@ if __name__ == '__main__':
     python_ta.check_all(config={
         'max-line-length': 120,
         'disable': ['static_type_checker'],
-        'extra-imports': ['csv', 'main', 'mbti_tree', 'filter_data', 'emoji'],
+        'extra-imports': ['main', 'mbti_helper', 'filter_data', 'emoji'],
         'allowed-io': [],
         'max-nested-blocks': 4
     })
