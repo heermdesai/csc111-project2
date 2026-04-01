@@ -146,7 +146,12 @@ def get_linguistic_features(posts: list[str]) -> dict[str, float]:
     - posts is a list of strings; empty strings are skipped in density calculations.
     """
     if not posts:
-        return {}
+        return {
+            'exclamation_density': 0.0, 'question_density': 0.0, 'ellipsis_density': 0.0,
+            'capital_density': 0.0, 'lexical_diversity': 0.0, 'i_pronoun_rate': 0.0,
+            'we_pronoun_rate': 0.0, 'link_density': 0.0, 'hashtag_density': 0.0,
+            'tag_density': 0.0, 'emoji_density': 0.0
+        }
 
     totals = {
         'exclamation_density': 0.0, 'question_density': 0.0, 'ellipsis_density': 0.0,

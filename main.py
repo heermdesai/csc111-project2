@@ -54,7 +54,7 @@ class MBTITree:
     """
     feature: Optional[str]
     threshold: Optional[float]
-    mbti_counts: dict[str, int]
+    mbti_counts: Optional[dict[str, int]]
     _left: Optional[MBTITree]
     _right: Optional[MBTITree]
     _root: Optional[Any]

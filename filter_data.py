@@ -107,16 +107,21 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
         reader = csv.reader(tweets_file)
         next(reader)
         for row in reader:
-            uid = int(row[0])
-            if uid in user_registry:
-                tweets_list = [t for t in row[1:] if t]
+            if not row:
+                continue
+            try:
+                uid = int(row[0])
+                if uid in user_registry:
+                    tweets_list = [t for t in row[1:] if t]
 
-                scores = linguistic_scores.compute_scores(tweets_list)
-                user = user_registry[uid]
-                user.social_score = scores['social_score']
-                user.expressiveness_score = scores['expressiveness_score']
-                user.complexity_score = scores['complexity_score']
-                user.structure_score = scores['structure_score']
+                    scores = linguistic_scores.compute_scores(tweets_list)
+                    user = user_registry[uid]
+                    user.social_score = scores['social_score']
+                    user.expressiveness_score = scores['expressiveness_score']
+                    user.complexity_score = scores['complexity_score']
+                    user.structure_score = scores['structure_score']
+            except ValueError:
+                continue
 
     return list(user_registry.values())
 
