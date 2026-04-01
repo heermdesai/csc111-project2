@@ -152,7 +152,7 @@ def reddit_user_files(reddit_post_file: str) -> list[User]:
 
     for username, user in user_registry.items():
         posts = user_posts[username]
-        user.average_post_length = user.average_post_length/len(posts)
+        user.average_post_length = user.average_post_length / len(posts)
 
         scores = _compute_scores(posts)
         user.social_score = scores['social_score']
@@ -262,7 +262,7 @@ if __name__ == '__main__':
     python_ta.check_all(config={
         'max-line-length': 120,
         'disable': ['static_type_checker'],
-        'extra-imports': ['csv', 'main', 'linguistic_scores', 'mbti_tree'],
+        'extra-imports': ['csv', 'main', 'linguistic_scores', 'mbti_helper'],
         'allowed-io': ['twitter_user_files', 'reddit_user_files', 'mixed_user_files'],
         'max-nested-blocks': 4
     })
