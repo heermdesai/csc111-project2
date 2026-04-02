@@ -1,0 +1,7 @@
+# CSC111 Winter 2026: Python libraries we'll be using in Project 2, Phase 2.
+
+# feature to compute linguistic score
+emoji
+
+# graphics and data visualization
+pygame
