@@ -120,7 +120,7 @@ def handle_mouse_click(mouse_pos: tuple[int, int], choices_rects: list[pygame.Re
 def draw_quiz_ui(screen: pygame.Surface, font: pygame.font.Font,
                  curr_q_idx: int, question_keys: list[str],
                  choices_rects: list[pygame.Rect], mouse_pos: tuple[int, int]) -> None:
-    """"Render the current question and the five Likert-scale response buttons onto the screen.
+    """Render the current question and the five Likert-scale response buttons onto the screen.
     Buttons change color to HOVER_COLOR if mouse_pos is hovering over them.
 
     Preconditions:
