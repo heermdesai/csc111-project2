@@ -1,5 +1,5 @@
 """CSC111 Winter 2026 Project 2 Phase 2
-Predicting MBTI Personality Types Using Social Media Activity: A Data-Driven Decision Tree Approach
+Linguistic Pattern Recognition for MBTI Classification: A Data-Driven Decision Tree Analysis of Social Media Posts
 
 Module Description
 ===============================
@@ -43,7 +43,7 @@ OPTIONS = [
 
 
 def wrap_text(text: str, font_obj: pygame.font.Font, max_width: int) -> list[str]:
-    """Word-wrap text to fit within a specific width."""
+    """Wrap text to fit within a specific width."""
     words = text.split()
     lines = []
     current_line = ""

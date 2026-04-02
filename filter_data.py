@@ -1,5 +1,5 @@
 """CSC111 Winter 2026 Project 2 Phase 2
-Predicting MBTI Personality Types Using Social Media Activity: A Data-Driven Decision Tree Approach
+Linguistic Pattern Recognition for MBTI Classification: A Data-Driven Decision Tree Analysis of Social Media Posts
 
 Module Description
 ===============================
@@ -17,7 +17,6 @@ This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 """
 
 import csv
-# from typing import Optional
 
 import linguistic_scores
 
@@ -77,6 +76,10 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
         - info: A file containing user IDs and profile metrics including average post length.
         - tweets: A file containing user IDs and raw tweet content for linguistic analysis.
 
+    Representation Invariants:
+        - len({user.user_id for user in users}) == len(users)
+        - all(user.user_id is not None for user in users)
+
     Preconditions:
         - All input files must be in CSV format.
         - The User ID must be located in the first column (index 0) of every input file.
@@ -129,6 +132,10 @@ def twitter_user_files(mbti: str, info: str, tweets: str) -> list[User]:
 def reddit_user_files(reddit_post_file: str) -> list[User]:
     """Returns a list of Users based on the reddit dataset.
 
+    Representation Invariants:
+        - len({user.user_id for user in users}) == len(users)
+        - all(user.user_id is not None for user in users)
+
     Preconditions:
         - reddit_post_file is the path to a CSV file where the leftmost column is the username,
           the middle column is the text post, and the rightmost column is the mbti type.
@@ -173,6 +180,10 @@ def reddit_user_files(reddit_post_file: str) -> list[User]:
 
 def mixed_user_files(misc_file: str) -> list[User]:
     """Returns a list of Users based on a dataset with miscellaneous textposts.
+
+    Representation Invariants:
+        - len({user.user_id for user in users}) == len(users)
+        - all(user.user_id is not None for user in users)
 
     Preconditions:
         - misc_file is the path to a CSV file with two columns, where the left column is mbti type,
