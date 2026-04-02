@@ -23,34 +23,27 @@ from mbti_helper import find_best_split, get_count, extract_user_features
 
 
 class MBTITree:
-    """A decision tree node for MBTI classification that functions both as data-driven classifier
-    and an interactive quiz structure. Each node represents either a decision point (split) or a
+    """ A decision tree for MBTI classification where each node represents either a decision point (split) or a
     final personality prediction (leaf).
 
     Instance Attributes:
         - feature: The attribute name this node splits on (e.g., 'excitement_score'). Set to None
             if this node is a leaf.
-        - threshold: The median value used to divide users at this node.  Set to None if this node
+        - threshold: The median value used to divide users at this node. Set to None if this node
             is a leaf.
         - mbti_counts: A dictionary mapping MBTI types to the frequency of training users of that
-            type who reached this node.
+            type who reached this node. Set to None if this node is a leaf.
 
     Private Instance Attributes
-        - _root:
-            - If is_leaf(): Stores the predicted MBTI string (e.g., 'INTJ').
-            - If not is_leaf(): Stores a human-readable string of the split condition
-                (e.g., 'excitement_score < 0.15').
+        - _root: Stores the current predicted MBTI string (e.g., 'INTJ').
         - _left: The child tree containing users with feature values < threshold.
         - _right: The child tree containing users with feature values >= threshold.
 
     Representation Invariants:
-        - self.is_leaf() == (self.feature is None)
-        - self.is_leaf() == (self.threshold is None)
-        - not self.is_leaf() ==> isinstance(self._left, MBTITree)
-        - not self.is_leaf() ==> isinstance(self._right, MBTITree)
         - all(mbti in {'entj', 'enfj', 'esfj', 'estj', 'entp', 'enfp', 'esfp', 'estp',
                        'intj', 'infj', 'isfj', 'istj', 'intp', 'infp', 'isfp', 'istp'}
               for mbti in self.mbti_counts)
+        - self.threshold is None or 0.0 <= self.threshold <= 1.0
     """
     feature: Optional[str]
     threshold: Optional[float]
@@ -62,6 +55,10 @@ class MBTITree:
     def __init__(self, mbti_counts: dict[str, int] = None, feature: str = None, threshold: float = 0.0) -> None:
         """
         Initializes an MBTI Tree
+
+        Sets the root to the most frequent MBTI type in mbti_counts,
+        or None if mbti_counts is empty or not given. Left and right subtrees are
+        initialized to None.
         """
         if not mbti_counts:
             self._root = None
@@ -88,7 +85,20 @@ class MBTITree:
     def build_mbti_tree(self, users: list[User], features: list[str] = None,
                         depth: int = 0, max_depth: int = 5) -> MBTITree:
         """
-        Recursively builds an MBTITree using the median-split logic.
+        Recursively builds and returns an MBTITree trained on the given list of users.
+
+        At each node, the best feature and median threshold are selected using
+        find_best_split. Users are partitioned into left (feature < threshold) and
+        right (feature >= threshold) subsets, and the tree is built recursively.
+        Recursion stops when any of the following base cases are met:
+            - All users share the same MBTI type (len(counts) <= 1)
+            - No features remain to split on
+            - The current depth has reached max_depth
+
+        Preconditions:
+            - len(users) != 0
+            - depth >= 0
+            - all features in features (if provided) are valid keys returned by extract_user_features
         """
 
         if features is None:
@@ -117,7 +127,7 @@ class MBTITree:
 
     def predict(self, answers: Optional[dict[str, float]] = None) -> str:
         """
-        Traverses the tree and return predicted MBTI type.
+        Traverses the tree and return predicted MBTI type based on user input.
         """
         if self._left is None and self._right is None:
             return self._root
@@ -135,7 +145,11 @@ class MBTITree:
 
 def ask_user(tree: MBTITree) -> float:
     """
-    Asks the user to enter their feature values.
+    Prompt the user to answer a question for a specific feature.
+
+    Preconditions:
+    - tree.feature in questions
+
     """
     questions = {
         "social_score": "I actively engage with others online by tagging them, using hashtags, or sharing links.",
@@ -144,8 +158,6 @@ def ask_user(tree: MBTITree) -> float:
         "structure_score": "I put a lot of effort into making my posts organized and grammatically correct.",
         "average_post_length": "I usually write long, detailed explanations rather than short snippets."
     }
-
-    t = tree.threshold
 
     scale = {
         "1": 0.0,

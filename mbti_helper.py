@@ -19,7 +19,19 @@ from filter_data import User
 
 
 def find_best_split(users: list[User], features_to_test: list[str]) -> tuple[str, float]:
-    """Determine which feature provides the most accurate split using the median."""
+    """Determine which feature provides the most accurate split using the median.
+
+    For each feature, computes the median threshold and splits users into two groups.
+    The feature whose median split correctly predicts the most users (based on majority
+    MBTI label in each group) is selected. Returns the best feature name and its
+    corresponding median threshold.
+
+    Preconditions:
+        - len(users) >= 1
+        - all(f in {'average_post_length', 'social_score', 'expressiveness_score',
+              'complexity_score', 'structure_score'} for f in features_to_test)
+        - all(u.mbti is not None for u in users)
+    """
 
     best_feature = features_to_test[0]
     best_threshold = get_median_threshold(users, best_feature)
@@ -48,7 +60,14 @@ def find_best_split(users: list[User], features_to_test: list[str]) -> tuple[str
 
 
 def get_count(users: list[User]) -> dict[str, int]:
-    """Return the count of the MBTI type in a list of users."""
+    """Return a dictionary mapping each MBTI type to the number of users with that type.
+
+    Preconditions:
+        - all(u.mbti is not None for u in users)
+        - all(u.mbti in {'entj', 'enfj', 'esfj', 'estj', 'entp', 'enfp', 'esfp', 'estp',
+                         'intj', 'infj', 'isfj', 'istj', 'intp', 'infp', 'isfp', 'istp'}
+              for u in users)
+    """
     counts = {}
     for u in users:
         if u.mbti in counts:
@@ -60,7 +79,10 @@ def get_count(users: list[User]) -> dict[str, int]:
 
 
 def _get_majority_count(users: list[User]) -> int:
-    """Return the count of the most common MBTI type in a list of users."""
+    """Return the count of the most common MBTI type among the given users.
+
+    Returns 0 if the list is empty.
+    """
     if not users:
         return 0
     counts = get_count(users)
@@ -68,7 +90,8 @@ def _get_majority_count(users: list[User]) -> int:
 
 
 def extract_user_features(user: User) -> dict[str, float]:
-    """Return a dictionary of numerical features for a given User."""
+    """Return a dictionary mapping feature names
+    to their corresponding numerical values for a given User."""
     return {
         'average_post_length': user.average_post_length,
         'social_score': user.social_score,
@@ -79,7 +102,13 @@ def extract_user_features(user: User) -> dict[str, float]:
 
 
 def get_median_threshold(users: list[User], feature: str) -> float:
-    """Find the median value of a specific feature across a list of users."""
+    """Return the median value of the given feature across all users. Returns 0.0 if users is empty.
+
+    Preconditions:
+        - feature in {'average_post_length', 'social_score', 'expressiveness_score',
+              'complexity_score', 'structure_score'}
+        - all(0.0 <= extract_user_features(u)[feature] <= 1.0 for u in users)
+    """
     values = []
     for u in users:
         u_feats = extract_user_features(u)
