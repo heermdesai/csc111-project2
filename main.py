@@ -1,10 +1,14 @@
-"""CSC111 Winter 2026 Project 2 Phase 2: MBTI Personality Predictor
+"""CSC111 Winter 2026 Project 2 Phase 2:
+Linguistic Pattern Recognition for MBTI Classification: A Data-Driven Decision Tree Analysis of Social Media Posts
 
 Module Description
 ===============================
-This module serves as the primary entry point and user interface for the MBTI  Prediction system.
-It orchestrates the flow of data between the filtering  and tree-building modules to initialize
-the model and conduct interactive  personality assessments.
+This module implements the core MBTITree class, a recursive decision tree structure designed to classify
+personality types based on digital linguistic markers. The module uses an algorithm to build a predictive model
+from processed social media data (Twitter, Reddit, and miscellaneous text), traverses the tree based on
+numerical feature scores to reach a leaf node representing a specific MBTI type. It provides a basic console
+interface that allows users to "quiz" themselves against the trained model by providing self-assessment scores
+for specific linguistic behaviors.
 
 Copyright and Usage Information
 ===============================
@@ -203,6 +207,8 @@ def run_mbti_test() -> None:
 if __name__ == '__main__':
     # Uncomment the following lines for code checking/debugging purposes.
     # We recommend commenting out these lines when working with large datasets to reduce runtime.
+
+    run_mbti_test()
 
     import python_ta.contracts
     python_ta.contracts.check_all_contracts()

@@ -3,7 +3,8 @@ Linguistic Pattern Recognition for MBTI Classification: A Data-Driven Decision T
 
 Module Description
 ===============================
-This module contains the visualisation/UI for the mbti quiz.
+This module implements the Graphical User Interface for the MBTI Personality Predictor Quiz
+using the Pygame library.
 
 Copyright and Usage Information
 ===============================
@@ -18,7 +19,6 @@ import pygame
 from main import MBTITree
 from filter_data import twitter_user_files, reddit_user_files, mixed_user_files
 
-# --- Constants & Configuration ---
 W, H = 1000, 750
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -42,25 +42,11 @@ OPTIONS = [
 ]
 
 
-def wrap_text(text: str, font_obj: pygame.font.Font, max_width: int) -> list[str]:
-    """Wrap text to fit within a specific width."""
-    words = text.split()
-    lines = []
-    current_line = ""
-
-    for word in words:
-        test_line = (current_line + " " + word).strip()
-        if font_obj.size(test_line)[0] <= max_width:
-            current_line = test_line
-        else:
-            lines.append(current_line)
-            current_line = word
-    lines.append(current_line)
-    return lines
-
-
 def run_quiz() -> None:
-    """Run the Pygame UI loop."""
+    """Initialize the MBTI decision tree from CSV datasets and launch the Pygame event loop
+    to conduct the personality quiz. This function handles the initialization of pygame, the data-driven
+    tree construction, and the transition between question states.
+    """
     pygame.init()
     screen = pygame.display.set_mode((W, H))
     pygame.display.set_caption("MBTI Personality Quiz")
@@ -119,7 +105,12 @@ def run_quiz() -> None:
 
 
 def handle_mouse_click(mouse_pos: tuple[int, int], choices_rects: list[pygame.Rect]) -> int:
-    """Check which button was clicked and return its index. Return -1 if none."""
+    """Return the index of the Rect in choices_rects that contains mouse_pos. Return -1 if
+    mouse_pos is not colliding with any Rect.
+
+    Preconditions:
+        - all(isinstance(r, pygame.Rect) for r in choices_rects)
+    """
     for i in range(len(choices_rects)):
         if choices_rects[i].collidepoint(mouse_pos):
             return i
@@ -129,7 +120,13 @@ def handle_mouse_click(mouse_pos: tuple[int, int], choices_rects: list[pygame.Re
 def draw_quiz_ui(screen: pygame.Surface, font: pygame.font.Font,
                  curr_q_idx: int, question_keys: list[str],
                  choices_rects: list[pygame.Rect], mouse_pos: tuple[int, int]) -> None:
-    """Handle all drawing for the question and buttons."""
+    """"Render the current question and the five Likert-scale response buttons onto the screen.
+    Buttons change color to HOVER_COLOR if mouse_pos is hovering over them.
+
+    Preconditions:
+        - 0 <= curr_q_idx < len(question_keys)
+        - len(choices_rects) == 5
+    """
     current_key = question_keys[curr_q_idx]
     wrapped_lines = wrap_text(QUESTIONS[current_key], font, W - 100)
 
@@ -151,7 +148,12 @@ def draw_quiz_ui(screen: pygame.Surface, font: pygame.font.Font,
 
 def display_results(screen: pygame.Surface, f_big: pygame.font.Font,
                     f_small: pygame.font.Font, mbti_type: str) -> None:
-    """Draw the final result screen."""
+    """Render the final predicted MBTI type in a large font at the center of the screen and
+    display an exit hint.
+
+    Preconditions:
+        - len(mbti_type) == 4
+    """
     res_str = f"Your Predicted Type: {mbti_type.upper()}"
     res_surface = f_big.render(res_str, True, BLACK)
     screen.blit(res_surface, res_surface.get_rect(center=(W // 2, H // 2)))
@@ -160,9 +162,33 @@ def display_results(screen: pygame.Surface, f_big: pygame.font.Font,
     screen.blit(hint_surface, hint_surface.get_rect(center=(W // 2, H // 2 + 100)))
 
 
+def wrap_text(text: str, font_obj: pygame.font.Font, max_width: int) -> list[str]:
+    """Break a string into multiple lines such that each line's rendered width
+    is less than or equal to max_width.
+
+    Preconditions:
+        - max_width > 0
+    """
+    words = text.split()
+    lines = []
+    current_line = ""
+
+    for word in words:
+        test_line = (current_line + " " + word).strip()
+        if font_obj.size(test_line)[0] <= max_width:
+            current_line = test_line
+        else:
+            lines.append(current_line)
+            current_line = word
+    lines.append(current_line)
+    return lines
+
+
 if __name__ == '__main__':
     # Uncomment the following lines for code checking/debugging purposes.
     # We recommend commenting out these lines when working with large datasets to reduce runtime.
+
+    run_quiz()
 
     import python_ta.contracts
     python_ta.contracts.check_all_contracts()

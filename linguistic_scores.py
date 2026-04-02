@@ -1,5 +1,5 @@
 """CSC111 Winter 2026 Project 2 Phase 2
-Predicting MBTI Personality Types Using Social Media Activity: A Data-Driven Decision Tree Approach
+Linguistic Pattern Recognition for MBTI Classification: A Data-Driven Decision Tree Analysis of Social Media Posts
 
 Module Description
 ===============================
@@ -17,23 +17,21 @@ This file is Copyright (c) 2026 Heer, Laavanya, Saanvi :)
 import emoji
 
 
-def calculate_complexity_score(features: dict[str, float]) -> float:
-    """
-    Calculate a score representing abstract thinking and conceptual depth.
+def compute_scores(posts: list[str]) -> dict[str, float]:
+    """Compute all four MBTI dimension scores from a list of posts.
 
-    Higher scores suggest iNtuition (N) traits — preference for patterns, ideas, and abstraction.
-    Lower scores suggest Sensing (S) traits — preference for concrete facts and practicality.
-
-    Weights:
-    - Lexical diversity (10.0): Primary indicator of abstract, nuanced thought.
-    - Question density (2.0): Reflects speculative and exploratory thinking.
-    - Ellipsis density (1.5): Captures comfort with ambiguity and open-ended ideas.
+    The returned scores are normalized to a float between 0.0 and 1.0, representing the strength of the trait
+    relative to the theoretical maximum and minimum possible for each metric, determined by the scales
+    defined in their respective calculate functions.
     """
-    return (
-        features['lexical_diversity'] * 10.0
-        + features['question_density'] * 2.0
-        + features['ellipsis_density'] * 1.5
-    )
+    features = get_linguistic_features(posts)
+
+    return {
+        'social_score': calculate_social_score(features),
+        'expressiveness_score': calculate_expressiveness_score(features),
+        'complexity_score': calculate_complexity_score(features),
+        'structure_score': calculate_structure_score(features)
+    }
 
 
 def calculate_social_score(features: dict[str, float]) -> float:
@@ -54,7 +52,11 @@ def calculate_social_score(features: dict[str, float]) -> float:
         + features['hashtag_density'] * 2.0
         + features['link_density'] * 1.0
     )
-    return score
+
+    min_possible_score = 0.0
+    max_possible_score = 11.0
+
+    return _normalize(score, min_possible_score, max_possible_score)
 
 
 def calculate_expressiveness_score(features: dict[str, float]) -> float:
@@ -77,9 +79,37 @@ def calculate_expressiveness_score(features: dict[str, float]) -> float:
         features['emoji_density'] * 4.0
         + features['exclamation_density'] * 3.0
         + features['i_pronoun_rate'] * 2.0
-        + expressiveness_from_capitals
+        + expressiveness_from_capitals  # max capital density = 1, max expressivenes = 2
     )
-    return score
+
+    min_possible_score = 0.0
+    max_possible_score = 11.0
+
+    return _normalize(score, min_possible_score, max_possible_score)
+
+
+def calculate_complexity_score(features: dict[str, float]) -> float:
+    """
+    Calculate a score representing abstract thinking and conceptual depth.
+
+    Higher scores suggest iNtuition (N) traits — preference for patterns, ideas, and abstraction.
+    Lower scores suggest Sensing (S) traits — preference for concrete facts and practicality.
+
+    Weights:
+    - Lexical diversity (10.0): Primary indicator of abstract, nuanced thought.
+    - Question density (2.0): Reflects speculative and exploratory thinking.
+    - Ellipsis density (1.5): Captures comfort with ambiguity and open-ended ideas.
+    """
+    score = (
+        features['lexical_diversity'] * 10.0
+        + features['question_density'] * 2.0
+        + features['ellipsis_density'] * 1.5
+    )
+
+    min_possible_score = 0.0
+    max_possible_score = 13.5
+
+    return _normalize(score, min_possible_score, max_possible_score)
 
 
 def calculate_structure_score(features: dict[str, float]) -> float:
@@ -100,11 +130,15 @@ def calculate_structure_score(features: dict[str, float]) -> float:
 
     score = (
         features['lexical_diversity'] * 2.0
-        + structure_from_capitals
+        + structure_from_capitals  # max capital density = 0.04999, max value here = approx 0.098
         - features['ellipsis_density'] * 4.0
         - features['exclamation_density'] * 1.5
     )
-    return score
+
+    min_possible_score = -5.5
+    max_possible_score = 2.1
+
+    return _normalize(score, min_possible_score, max_possible_score)
 
 
 def _classify_capital_density(capital_density: float) -> tuple[float, float]:
@@ -131,6 +165,20 @@ def _classify_capital_density(capital_density: float) -> tuple[float, float]:
     else:
         # Low/moderate capitals: likely deliberate formatting emphasis — structure signal
         return 0.0, capital_density * 2.0
+
+
+def _normalize(value: float, min_val: float, max_val: float) -> float:
+    """Normalize value to a scale of [0.0, 1.0] based on min_val and max_val.
+
+    If value exceeds the provided boundaries, it is clipped to 0.0 or 1.0.
+
+    Preconditions:
+        - max_val >= min_val
+    """
+    if max_val == min_val:
+        return 0.0
+    normalized = (value - min_val) / (max_val - min_val)
+    return max(0.0, min(1.0, normalized))
 
 
 def get_linguistic_features(posts: list[str]) -> dict[str, float]:
@@ -187,21 +235,6 @@ def get_linguistic_features(posts: list[str]) -> dict[str, float]:
         totals['link_density'] += (post.count('http') + post.count('www')) / length
 
     return {k: v / len(posts) for k, v in totals.items()}
-
-
-def compute_scores(posts: list[str]) -> dict[str, float]:
-    """Compute all four MBTI dimension scores from a list of posts.
-
-    This is a private helper to avoid repeating the same four calculate_* calls
-    in every data loading function.
-    """
-    features = get_linguistic_features(posts)
-    return {
-        'social_score': calculate_social_score(features),
-        'expressiveness_score': calculate_expressiveness_score(features),
-        'complexity_score': calculate_complexity_score(features),
-        'structure_score': calculate_structure_score(features),
-    }
 
 
 if __name__ == '__main__':
